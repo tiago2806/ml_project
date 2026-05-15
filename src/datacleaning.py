@@ -1,14 +1,22 @@
-
 import pandas as pd
+
+#DATA TYPES
+def handle_datatypes(dataset):
+    dataset['customer_birthdate'] = pd.to_datetime(dataset['customer_birthdate'], errors='coerce')
+    dataset['kids_home'] = dataset['kids_home'].astype('Int64')
+    dataset['teens_home'] = dataset['teens_home'].astype('Int64')
+    dataset['number_complaints'] = dataset['number_complaints'].astype('Int64')
+    dataset['distinct_stores_visited'] = dataset['distinct_stores_visited'].astype('Int64')    
+    dataset['typical_hour'] = pd.to_datetime('typical_hour').dt.hour
+
+
+    return dataset
 
 
 def eliminate_duplicates(dataset):
     dataset.drop_duplicates(inplace=True)
     return dataset
 
-def handle_datatypes(dataset):
-    dataset['customer_birthdate'] = pd.to_datetime(dataset['customer_birthdate'], errors='coerce')
-    return dataset
 
 def check_impossible_values(dataset):
     return dataset
