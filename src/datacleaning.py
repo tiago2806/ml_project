@@ -12,6 +12,7 @@ def handle_datatypes(dataset):
 
     return dataset
 
+print("olá")
 
 def eliminate_duplicates(dataset):
     dataset.drop_duplicates(inplace=True)
