@@ -10,8 +10,8 @@ class Clusteringworkflow:
         self.algorithm = algorithm
 
         
-    def elbow_method(self, X, max_k = 25)
-        if isinstance(self.algorithm, KMeans):
+    def elbow_method(self, X, max_k = 25):
+        if  not isinstance(self.algorithm, KMeans):
             raise ValueError("Elbow method is only for KMeans algorithm.")        
 
         dispersion = []
