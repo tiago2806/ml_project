@@ -27,7 +27,7 @@ class Clusteringworkflow:
             plt.show()
 
         elif isinstance(self.algorithm, AgglomerativeClustering):
-            model_hierarchical = self.algorithm
+            model_hierarchical = AgglomerativeClustering().fit(data_scaled)
             fig, ax = plt.subplots()
             plt.title("Hierarchical Clustering Dendrogram")
             # plot the top three levels of the dendrogram
@@ -72,6 +72,6 @@ class Clusteringworkflow:
 
         X_train['cluster_kmeans'] = self.algorithm.predict(data_scaled) 
     
-
+        return self
 
     
