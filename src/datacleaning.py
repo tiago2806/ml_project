@@ -4,6 +4,7 @@ import numpy as np
 from datetime import datetime
 from sklearn.preprocessing import StandardScaler
 from sklearn.impute import KNNImputer
+from sklearn.cluster import DBSCAN
 
 
 # ==========================================
@@ -11,8 +12,9 @@ from sklearn.impute import KNNImputer
 # ==========================================
 
 def drop_column(dataset, columns):
-    dataset.drop(columns, axis = 1, inplace = True)
-    return dataset
+    df = dataset.copy()
+    df.drop(columns, axis=1, inplace=True, errors='ignore')
+    return df
 
 # ==========================================
 # 1. DATA TYPES
@@ -23,21 +25,21 @@ def handle_datatypes(dataset):
 
     # Dates and Typical Hour
     df['customer_birthdate'] = pd.to_datetime(df['customer_birthdate'], errors='coerce', format= 'mixed')
-    df['year_first_transaction'] = pd.to_datetime(df['year_first_transaction'], errors='coerce').dt.year
     df['typical_hour'] = pd.to_numeric(df['typical_hour'], errors='coerce')
 
-    # Calculate Age & Drop Birthdate
+    # Calculate Age & Drop Birthdate and Loyalty Card Number
     current_year = datetime.now().year
     df['customer_age'] = current_year - df['customer_birthdate'].dt.year
-    drop_column(df, ['customer_birthdate'])
+    df = drop_column(df, ['customer_birthdate','loyalty_card_number'])
 
 
     # Numerical columns
-    df['kids_home'] = df['kids_home'].astype('Int64')
-    df['teens_home'] = df['teens_home'].astype('Int64')
-    df['number_complaints'] = df['number_complaints'].astype('Int64')
-    df['distinct_stores_visited'] = df['distinct_stores_visited'].astype('Int64')    
-    df['lifetime_total_distinct_products'] = df['lifetime_total_distinct_products'].astype('Int64')
+    df['kids_home'] = df['kids_home'].round().astype('Int64')
+    df['teens_home'] = df['teens_home'].round().astype('Int64')
+    df['number_complaints'] = df['number_complaints'].round().astype('Int64')
+    df['distinct_stores_visited'] = df['distinct_stores_visited'].round().astype('Int64')    
+    df['lifetime_total_distinct_products'] = df['lifetime_total_distinct_products'].round().astype('Int64')
+    df['year_first_transaction'] = df['year_first_transaction'].round().astype('Int64')
    
     return df
 
@@ -92,9 +94,7 @@ def check_impossible_values(dataset):
     if 'longitude' in dataset.columns:
         df.loc[(df['longitude'] < -180) | (df['longitude'] > 180), 'longitude'] = np.nan
 
-    return dataset
-
-
+    return df
 
 # ==========================================
 # 4. MISSING VALUES
@@ -138,7 +138,21 @@ def handle_outliers(dataset):
 
     df = dataset.copy()
 
-    return dataset
+    numeric_cols = df.select_dtypes(include=['int64', 'float64', 'Int64']).columns
+
+    if len(numeric_cols) > 0:
+        scaler = StandardScaler()
+        scaled_data = scaler.fit_transform(df[numeric_cols])
+        
+        dbscan = DBSCAN(eps=3.5, min_samples=5)
+        dbscan.fit(scaled_data)
+      
+        outliers_mask = dbscan.labels_ == -1
+        number_of_outliers = outliers_mask.sum()
+        
+        df = df[~outliers_mask]
+
+    return df
 
 
 # ==========================================
@@ -149,22 +163,18 @@ def feature_engineering(dataset):
 
     df = dataset.copy()
 
+    df['education_level'] = df['customer_name'].str.extract(r'(Bsc|Msc|Phd)')
+    df['education_level'] = df['education_level'].fillna('Unknown')
+    df['customer_name'] = df['customer_name'].str.replace(r'(Bsc\.\s*|Msc\.\s*|Phd\.\s*)', '', regex=True)
+
     df['total_children'] = df['kids_home'] + df['teens_home']
-    #df['has_children'] = 
-    #create time of the day bins 'night' -> 00:00 - 05:59 etc.
-    #create a cycliclal encoding for the hours (to let the model know that 23 and 00 are neighbours)
+    df['has_children'] = (df['total_children'] > 0).astype(int)
+
+    df['time_of_day'] = pd.cut(df['typical_hour'], bins=[-1, 5, 11, 17, 24], labels=['Night', 'Morning', 'Afternoon', 'Evening'])
+    df['hour_sin'] = np.sin(2 * np.pi * df['typical_hour'] / 24.0)
+    df['hour_cos'] = np.cos(2 * np.pi * df['typical_hour'] / 24.0)
+
     return df   
-
-
-# ==========================================
-# 7. SCALING
-# ==========================================
-
-def scale_data(dataset):
-
-    df = dataset.copy()
-
-    return dataset
 
 
 # ==========================================
@@ -182,7 +192,6 @@ def clean_data(dataset):
     clean_df = handle_missing_values(clean_df)
     clean_df = handle_outliers(clean_df)
     clean_df = feature_engineering(clean_df)
-    clean_df = scale_data(clean_df)
 
     return clean_df
 
