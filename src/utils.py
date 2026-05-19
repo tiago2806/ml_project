@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans, AgglomerativeClustering
 from scipy.cluster.hierarchy import dendrogram, linkage
 from sklearn.metrics import silhouette_score
+from sklearn.preprocessing import StandardScaler
 
 def plot_dendrogram(model, **kwargs):
     '''
@@ -32,3 +33,10 @@ def plot_dendrogram(model, **kwargs):
 
     # Plot the corresponding dendrogram
     dendrogram(linkage_matrix, **kwargs)
+
+
+def scaling(data):
+    scaler = StandardScaler()
+    scaled_data = scaler.fit_transform(data)
+
+    return scaled_data
