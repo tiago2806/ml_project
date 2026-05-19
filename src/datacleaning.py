@@ -6,118 +6,170 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.impute import KNNImputer
 
 
+# ==========================================
+# HELPER FUNCTIONS
+# ==========================================
 
-#DATA TYPES
-def handle_datatypes(dataset):
-    dataset['customer_birthdate'] = pd.to_datetime(dataset['customer_birthdate'], errors='coerce', dayfirst=True)
-    dataset['kids_home'] = dataset['kids_home'].astype('Int64')
-    dataset['teens_home'] = dataset['teens_home'].astype('Int64')
-    dataset['number_complaints'] = dataset['number_complaints'].astype('Int64')
-    dataset['distinct_stores_visited'] = dataset['distinct_stores_visited'].astype('Int64')    
-    dataset['typical_hour'] = pd.to_numeric(dataset['typical_hour'], errors='coerce')
-    dataset['lifetime_total_distinct_products'] = dataset['lifetime_total_distinct_products'].astype('Int64')
-    dataset['year_first_transaction'] = pd.to_datetime(dataset['year_first_transaction'], errors='coerce').dt.year
-
-    current_year = datetime.now().year
-    dataset['customer_age'] = current_year - dataset['customer_birthdate'].dt.year
-    drop_column(dataset, ['customer_birthdate'])
-
+def drop_column(dataset, columns):
+    dataset.drop(columns, axis = 1, inplace = True)
     return dataset
 
-#HANDLE DUPLICATES
+# ==========================================
+# 1. DATA TYPES
+# ==========================================
+
+def handle_datatypes(dataset):
+    df = dataset.copy()
+
+    # Dates and Typical Hour
+    df['customer_birthdate'] = pd.to_datetime(df['customer_birthdate'], errors='coerce', format= 'mixed')
+    df['year_first_transaction'] = pd.to_datetime(df['year_first_transaction'], errors='coerce').dt.year
+    df['typical_hour'] = pd.to_numeric(df['typical_hour'], errors='coerce')
+
+    # Calculate Age & Drop Birthdate
+    current_year = datetime.now().year
+    df['customer_age'] = current_year - df['customer_birthdate'].dt.year
+    drop_column(df, ['customer_birthdate'])
+
+
+    # Numerical columns
+    df['kids_home'] = df['kids_home'].astype('Int64')
+    df['teens_home'] = df['teens_home'].astype('Int64')
+    df['number_complaints'] = df['number_complaints'].astype('Int64')
+    df['distinct_stores_visited'] = df['distinct_stores_visited'].astype('Int64')    
+    df['lifetime_total_distinct_products'] = df['lifetime_total_distinct_products'].astype('Int64')
+   
+    return df
+
+# ==========================================
+# 2. DUPLICATES
+# ==========================================
+
 def eliminate_duplicates(dataset):
     dataset = dataset.drop_duplicates()
     return dataset
 
-#HANDLE IMPOSSIBLE VALUES
+
+# ==========================================
+# 3. IMPOSSIBLE VALUES
+# ==========================================
+
+
 #customer age
 def check_impossible_values(dataset):
+    df = dataset.copy()
     if 'customer_age' in dataset.columns:
-        dataset.loc[(dataset['customer_age'] <= 0) | (dataset['customer_age'] > 120), 'customer_age'] = np.nan
+        df.loc[(df['customer_age'] <= 0) | (df['customer_age'] > 120), 'customer_age'] = np.nan
 
 #negative values in count columns
     count_cols = ['kids_home', 'teens_home', 'number_complaints', 'distinct_stores_visited']
     for col in count_cols:
         if col in dataset.columns:
-            dataset.loc[dataset[col] < 0, col] = np.nan
+            df.loc[df[col] < 0, col] = np.nan
 
 #Lifetime spend columns  
     spend_cols = [col for col in dataset.columns if 'lifetime_spend' in col]
     for col in spend_cols:
-        dataset.loc[dataset[col] < 0, col] = np.nan
+        df.loc[df[col] < 0, col] = np.nan
 
 #typical hour (6-23)
     if 'typical_hour' in dataset.columns:
-        dataset.loc[(dataset['typical_hour'] < 6) | (dataset['typical_hour'] > 23), 'typical_hour'] = np.nan
+        df.loc[(df['typical_hour'] < 6) | (df['typical_hour'] > 23), 'typical_hour'] = np.nan
 
 #percentage of products bought in promotion (0-1)
     if 'percentage_of_products_bought_promotion' in dataset.columns:
-        dataset.loc[(dataset['percentage_of_products_bought_promotion'] < 0) | (dataset['percentage_of_products_bought_promotion'] > 1.0), 'percentage_of_products_bought_promotion'] = np.nan
+        df.loc[(df['percentage_of_products_bought_promotion'] < 0) | (df['percentage_of_products_bought_promotion'] > 1.0), 'percentage_of_products_bought_promotion'] = np.nan
 
 #year of first transaction cannot be in the future)
     if 'year_first_transaction' in dataset.columns:
         current_year = datetime.now().year
-        dataset.loc[dataset['year_first_transaction'] > current_year, 'year_first_transaction'] = np.nan
+        df.loc[df['year_first_transaction'] > current_year, 'year_first_transaction'] = np.nan
 
 #latitude and longitude need to be in the correct range
     if 'latitude' in dataset.columns:
-        dataset.loc[(dataset['latitude'] < -90) | (dataset['latitude'] > 90), 'latitude'] = np.nan
+        df.loc[(df['latitude'] < -90) | (df['latitude'] > 90), 'latitude'] = np.nan
         
     if 'longitude' in dataset.columns:
-        dataset.loc[(dataset['longitude'] < -180) | (dataset['longitude'] > 180), 'longitude'] = np.nan
+        df.loc[(df['longitude'] < -180) | (df['longitude'] > 180), 'longitude'] = np.nan
 
     return dataset
 
-#DROP COLUMNS
-def drop_column(dataset, columns):
-    dataset.drop(columns, axis = 1, inplace = True)
-    return dataset
 
-#HANDLE MISSING VALUES
+
+# ==========================================
+# 4. MISSING VALUES
+# ==========================================
+
 def handle_missing_values(dataset):
+
+    df = dataset.copy()
+
     #lifetime spend... columns
     spend_cols = [col for col in dataset.columns if 'lifetime_spend' in col] #onde é nulo, é porque provavelmenet o cliente nunca la foi
-    dataset[spend_cols] = dataset[spend_cols].fillna(0) 
+    df[spend_cols] = df[spend_cols].fillna(0) 
 
 
     #KNN imputation for numerical columns, but first we need to scale the data 
     #numerical columns (kids_home, teens_home, number_complaints, distinct_stores_visited, typical_hour, percentage_of_products_bought_promotion)
-    numeric_cols = dataset.select_dtypes(include=['int64', 'float64', 'Int64']).columns
+    numeric_cols = df.select_dtypes(include=['int64', 'float64', 'Int64']).columns
     if len(numeric_cols) > 0:
         scaler = StandardScaler()
-        imputer = KNNImputer(n_neighbors=5)
+        imputer = KNNImputer(n_neighbors=7)
         
-        scaled_data = scaler.fit_transform(dataset[numeric_cols])
+        scaled_data = scaler.fit_transform(df[numeric_cols])
         imputed_data = imputer.fit_transform(scaled_data)
-        dataset[numeric_cols] = scaler.inverse_transform(imputed_data) #to get the original scale back so we can find outliers and round the values
+        df[numeric_cols] = scaler.inverse_transform(imputed_data) #to get the original scale back so we can find outliers and round the values
     
-    dataset['percentage_of_products_bought_promotion'] = dataset['percentage_of_products_bought_promotion'].clip(0.0, 1.0)
+    df['percentage_of_products_bought_promotion'] = df['percentage_of_products_bought_promotion'].clip(0.0, 1.0)
         
     count_cols = ['kids_home', 'teens_home', 'number_complaints', 'distinct_stores_visited', 'typical_hour', 'customer_age']
     for col in count_cols:
-        if col in dataset.columns:
-            dataset[col] = dataset[col].round().astype('Int64')
+        if col in df.columns:
+            df[col] = df[col].round().astype('Int64')
         
-    return dataset
+    return df
     
 
-#HANDLE OUTLIERS
+# ==========================================
+# 5. OUTLIERS
+# ==========================================
+
 def handle_outliers(dataset):
+
+    df = dataset.copy()
+
     return dataset
 
-#FEATURE ENGINEERING
+
+# ==========================================
+# 6. FEATURE ENGINEERING
+# ==========================================
+
 def feature_engineering(dataset):
-    dataset['total_children'] = dataset['kids_home'] + dataset['teens_home']
-    #dataset['has_children'] = 
+
+    df = dataset.copy()
+
+    df['total_children'] = df['kids_home'] + df['teens_home']
+    #df['has_children'] = 
     #create time of the day bins 'night' -> 00:00 - 05:59 etc.
     #create a cycliclal encoding for the hours (to let the model know that 23 and 00 are neighbours)
-    return dataset
+    return df   
 
-#SCALING DATA
+
+# ==========================================
+# 7. SCALING
+# ==========================================
+
 def scale_data(dataset):
+
+    df = dataset.copy()
+
     return dataset
 
 
+# ==========================================
+# PIPELINE 
+# ==========================================
 
 def clean_data(dataset):
 
