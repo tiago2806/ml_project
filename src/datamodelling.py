@@ -2,9 +2,12 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans, AgglomerativeClustering
+from sklearn.decomposition import PCA
+from sklearn.manifold import TSNE
 from scipy.cluster.hierarchy import dendrogram, linkage
 from sklearn.metrics import silhouette_score
 from sklearn.base import clone
+import umap
 from utils import (
     plot_dendrogram
 )
@@ -14,7 +17,7 @@ class Clusteringworkflow:
     Class containing the workflow of the algorithms used for the creation of clusters.
     """
     def __init__(self, algorithm):
-        #instatiation of an object, which is just a clustering algorithm
+        #instatiation of an object, which is just an algorithm for clustering.
         self.algorithm = algorithm
 
         
@@ -111,5 +114,23 @@ class Clusteringworkflow:
 
 class DimensionalityReduction:
     """
-    This is the class for the algorithms that are going to be used with the intent of facilitating visualization
+    This is the class for algorithms that are going to be used with the intent of facilitating visualization
     """
+    def __init__(self, algorithm):
+        self.algorithm = algorithm
+
+    def fit_and_transformation(self, data_scaled):
+        self.fitted_model = self.algorithm.fit_transform(data_scaled)
+
+        return self
+    
+
+class PCAWorkflow(DimensionalityReduction):
+    def __init__(self, algorithm):
+        if not isinstance(algorithm, PCA):
+            raise ValueError("PCAWorkflow only accepts PCA algorithm.")
+
+        super().__init__(algorithm)
+    
+    def explained_variance():
+        
