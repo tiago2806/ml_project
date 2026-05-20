@@ -12,6 +12,16 @@ from sklearn.cluster import DBSCAN
 # ==========================================
 
 def drop_column(dataset, columns):
+    '''
+    Removes a specific column or columns from the dataset.
+
+    Input:
+    - dataset: the df from which the column(s) will be removed.
+    - columns: the column name or a list of column names to be removed.
+
+    Output:
+    - df: the dataset with the specified column(s) removed.
+    '''
     df = dataset.copy()
     df.drop(columns, axis=1, inplace=True, errors='ignore')
     return df
@@ -21,6 +31,17 @@ def drop_column(dataset, columns):
 # ==========================================
 
 def handle_datatypes(dataset):
+    '''
+    Make necessary conversions to some column data types,
+    calculate the customer age based on the birthdate and 
+    drop the birthdate and loyalty card number columns.
+
+    Input:
+    - dataset: the df with the original data types.
+
+    Output:
+    - df: the dataset with the correct data types and new age column.
+    '''
     df = dataset.copy()
 
     # Dates and Typical Hour
@@ -48,46 +69,64 @@ def handle_datatypes(dataset):
 # ==========================================
 
 def eliminate_duplicates(dataset):
-    dataset = dataset.drop_duplicates()
-    return dataset
+    '''
+    Removes duplicate rows from the dataset.
 
+    Input:
+    - dataset: the df that may contain duplicate rows.
+
+    Output:
+    - df: the dataset with duplicate rows removed.
+    '''
+    df = dataset.copy()
+    df = df.drop_duplicates()
+    return df
 
 # ==========================================
 # 3. IMPOSSIBLE VALUES
 # ==========================================
 
-
-#customer age
 def check_impossible_values(dataset):
+    '''
+    Handles impossible values based on predefined rules.
+    
+    Input:
+    - dataset: the df that may contain impossible values.
+    
+    Output:
+    - df: the dataset with impossible values set to NaN.
+    '''
+
     df = dataset.copy()
+
+    #Customer Age (0-120)
     if 'customer_age' in dataset.columns:
         df.loc[(df['customer_age'] <= 0) | (df['customer_age'] > 120), 'customer_age'] = np.nan
 
-#negative values in count columns
+    #Negative values in count columns and 'lifetime_spend' columns
     count_cols = ['kids_home', 'teens_home', 'number_complaints', 'distinct_stores_visited']
     for col in count_cols:
         if col in dataset.columns:
             df.loc[df[col] < 0, col] = np.nan
 
-#Lifetime spend columns  
     spend_cols = [col for col in dataset.columns if 'lifetime_spend' in col]
     for col in spend_cols:
         df.loc[df[col] < 0, col] = np.nan
 
-#typical hour (6-23)
+    #Typical hour has to be between 6 and 23
     if 'typical_hour' in dataset.columns:
         df.loc[(df['typical_hour'] < 6) | (df['typical_hour'] > 23), 'typical_hour'] = np.nan
 
-#percentage of products bought in promotion (0-1)
+    #Percentage of products bought in promotion has to be between 0 and 1
     if 'percentage_of_products_bought_promotion' in dataset.columns:
         df.loc[(df['percentage_of_products_bought_promotion'] < 0) | (df['percentage_of_products_bought_promotion'] > 1.0), 'percentage_of_products_bought_promotion'] = np.nan
 
-#year of first transaction cannot be in the future)
+    #Year of first transaction cannot be in the future
     if 'year_first_transaction' in dataset.columns:
         current_year = datetime.now().year
         df.loc[df['year_first_transaction'] > current_year, 'year_first_transaction'] = np.nan
 
-#latitude and longitude need to be in the correct range
+    #Latitude and longitude need to be in the correct range
     if 'latitude' in dataset.columns:
         df.loc[(df['latitude'] < -90) | (df['latitude'] > 90), 'latitude'] = np.nan
         
@@ -101,16 +140,26 @@ def check_impossible_values(dataset):
 # ==========================================
 
 def handle_missing_values(dataset):
-
+    '''
+    What it does:
+    - Missing Values in'lifetime_spend' columns are filled with 0 (assuming no purchase was made).
+    - Applies KNN Imputation (k=7) in numeric columns.
+    - The probability values are clipped to valid ranges ([0, 1]).
+    - Rounds count columns to the nearest integer and converts them to Int64 type.
+    
+    Input:
+        dataset: The dataframe with missing values.
+    Output:
+        df: A dataset with zero missing values.
+    '''
     df = dataset.copy()
 
-    #lifetime spend... columns
-    spend_cols = [col for col in dataset.columns if 'lifetime_spend' in col] #onde é nulo, é porque provavelmenet o cliente nunca la foi
+    #Lifetime spend columns, set to zero
+    spend_cols = [col for col in dataset.columns if 'lifetime_spend' in col]
     df[spend_cols] = df[spend_cols].fillna(0) 
 
 
-    #KNN imputation for numerical columns, but first we need to scale the data 
-    #numerical columns (kids_home, teens_home, number_complaints, distinct_stores_visited, typical_hour, percentage_of_products_bought_promotion)
+    #KNN imputation for numerical columns, but first we need to temporarily scale the data 
     numeric_cols = df.select_dtypes(include=['int64', 'float64', 'Int64']).columns
     if len(numeric_cols) > 0:
         scaler = StandardScaler()
@@ -135,6 +184,15 @@ def handle_missing_values(dataset):
 # ==========================================
 
 def handle_outliers(dataset):
+    '''
+    Finds and removes multidimensional outliers using the DBSCAN algorithm.
+    
+    Input:
+        dataset - The df with potential outliers.
+        
+    Returns:
+        df- df with outliers removed.
+    '''
 
     df = dataset.copy()
 
@@ -160,16 +218,28 @@ def handle_outliers(dataset):
 # ==========================================
 
 def feature_engineering(dataset):
+    '''
+    Extracts underlying information into new predictive features.
+    
+    Input:
+        dataset - The current dataframe.
+        
+    Ouput:
+        df - dataset with the new features (e.g., education_level, hour_sin).
+    '''
 
     df = dataset.copy()
 
+    # Extract academic titles
     df['education_level'] = df['customer_name'].str.extract(r'(Bsc|Msc|Phd)')
     df['education_level'] = df['education_level'].fillna('Unknown')
     df['customer_name'] = df['customer_name'].str.replace(r'(Bsc\.\s*|Msc\.\s*|Phd\.\s*)', '', regex=True)
 
+    #Family size and has children
     df['total_children'] = df['kids_home'] + df['teens_home']
     df['has_children'] = (df['total_children'] > 0).astype(int)
 
+    # Time of day and cyclic encoding of typical hour
     df['time_of_day'] = pd.cut(df['typical_hour'], bins=[-1, 5, 11, 17, 24], labels=['Night', 'Morning', 'Afternoon', 'Evening'])
     df['hour_sin'] = np.sin(2 * np.pi * df['typical_hour'] / 24.0)
     df['hour_cos'] = np.cos(2 * np.pi * df['typical_hour'] / 24.0)
@@ -184,7 +254,14 @@ def feature_engineering(dataset):
 def clean_data(dataset):
 
     """
-    This function contains all the other functions.
+    This function executes the entire data cleaning pipeline
+    in the correct order.
+
+    Input:
+    - dataset: the original df that needs to be cleaned.
+
+    Output:
+    - clean_df: the cleaned dataset ready for modeling.
     """
     clean_df = handle_datatypes(dataset)
     clean_df = eliminate_duplicates(clean_df)
