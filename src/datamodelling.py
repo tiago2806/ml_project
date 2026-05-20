@@ -7,9 +7,10 @@ from sklearn.manifold import TSNE
 from scipy.cluster.hierarchy import dendrogram, linkage
 from sklearn.metrics import silhouette_score
 from sklearn.base import clone
-import umap
 from utils import (
-    plot_dendrogram
+    plot_dendrogram,
+    plot_2d_with_classes,
+    visualize_dimensionality_reduction
 )
 
 class Clusteringworkflow:
@@ -132,5 +133,30 @@ class PCAWorkflow(DimensionalityReduction):
 
         super().__init__(algorithm)
     
-    def explained_variance():
-        pass
+    def fit_pca(self, data_scaled):
+        self.algorithm.fit(data_scaled)
+
+        return self
+
+    def explained_variance(self):
+        plt.figure(figsize=(8, 5))
+        plt.plot(self.algorithm.explained_variance_ratio_.cumsum(), marker='o')
+        plt.xlabel('Number of components')
+        plt.ylabel('Cumulative explained variance')
+        plt.title('Explained Variance by Components')
+        plt.show()
+
+    def plot(self, labels):
+        plot_2d_with_classes(labels, self.fitted_model)
+
+
+class TSNEWorkflow(DimensionalityReduction):
+    def __init__(self, algorithm):
+        if not isinstance(algorithm, TSNE):
+            raise ValueError("TSNEWorkflow only accepts TSNE algorithm.")
+
+        super().__init__(algorithm)
+    
+    def plot(self, labels):
+        visualize_dimensionality_reduction(labels, self.transformed_data)
+
