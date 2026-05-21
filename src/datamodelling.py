@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans, AgglomerativeClustering
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
+from umap import UMAP
 from scipy.cluster.hierarchy import dendrogram, linkage
 from sklearn.metrics import silhouette_score
 from sklearn.base import clone
@@ -158,5 +159,15 @@ class TSNEWorkflow(DimensionalityReduction):
         super().__init__(algorithm)
     
     def plot(self, labels):
-        visualize_dimensionality_reduction(labels, self.transformed_data)
+        visualize_dimensionality_reduction(labels, self.fitted_model)
 
+
+class UMAPWorkflow(DimensionalityReduction):
+    def __init__(self, algorithm):
+        if not isinstance(algorithm, UMAP):
+            raise ValueError("UMAPWorkflow only accepts UMAP algorithm.")
+
+        super().__init__(algorithm)
+    
+    def plot(self, labels):
+        visualize_dimensionality_reduction(labels, self.fitted_model)    
