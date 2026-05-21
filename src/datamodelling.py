@@ -8,11 +8,14 @@ from umap import UMAP
 from scipy.cluster.hierarchy import dendrogram, linkage
 from sklearn.metrics import silhouette_score
 from sklearn.base import clone
+import sys
+sys.path.append('.')
 from utils import (
     plot_dendrogram,
     plot_2d_with_classes,
     visualize_dimensionality_reduction
 )
+
 
 class Clusteringworkflow:
     """

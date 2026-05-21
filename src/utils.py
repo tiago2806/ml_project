@@ -8,6 +8,7 @@ from sklearn.preprocessing import StandardScaler
 from matplotlib.lines import Line2D 
 
 
+
 def plot_dendrogram(model, **kwargs):
     '''
     Create linkage matrix and then plot the dendrogram
