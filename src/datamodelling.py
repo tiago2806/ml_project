@@ -8,8 +8,6 @@ from umap import UMAP
 from scipy.cluster.hierarchy import dendrogram, linkage
 from sklearn.metrics import silhouette_score
 from sklearn.base import clone
-import sys
-sys.path.append('.')
 from utils import (
     plot_dendrogram,
     plot_2d_with_classes,
@@ -162,7 +160,7 @@ class TSNEWorkflow(DimensionalityReduction):
         super().__init__(algorithm)
     
     def plot(self, labels):
-        visualize_dimensionality_reduction(labels, self.fitted_model)
+        visualize_dimensionality_reduction(self.fitted_model, labels)
 
 
 class UMAPWorkflow(DimensionalityReduction):
