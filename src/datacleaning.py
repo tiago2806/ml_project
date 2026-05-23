@@ -1,6 +1,7 @@
 
 import pandas as pd
 import numpy as np
+import ast
 from datetime import datetime
 from sklearn.preprocessing import StandardScaler
 from sklearn.impute import KNNImputer
@@ -8,14 +9,14 @@ from sklearn.cluster import DBSCAN
 
 
 # ==========================================
-# HELPER FUNCTIONS
+# SHARED HELPER FUNCTIONS
 # ==========================================
 
 def drop_column(dataset, columns):
     '''
     Removes a specific column or columns from the dataset.
 
-    Input:
+    Parameters:
     - dataset: the df from which the column(s) will be removed.
     - columns: the column name or a list of column names to be removed.
 
@@ -26,17 +27,66 @@ def drop_column(dataset, columns):
     df.drop(columns, axis=1, inplace=True, errors='ignore')
     return df
 
-# ==========================================
-# 1. DATA TYPES
-# ==========================================
+def eliminate_duplicates(dataset):
+    '''
+    Removes duplicate rows from the dataset.
 
-def handle_datatypes(dataset):
+    Parameters:
+    - dataset: the df that may contain duplicate rows.
+
+    Output:
+    - df: the dataset with duplicate rows removed.
+    '''
+    df = dataset.copy()
+    df = df.drop_duplicates()
+    return df
+
+def handle_outliers(dataset, eps_value, min_samples_value):
+    """
+    Detects and removes multidimensional outliers using DBSCAN.
+    Allows custom eps and min_samples for different datasets.
+
+    Parameters:
+        dataset - The df with potential outliers.
+        eps_value - The epsilon value for DBSCAN.
+        min_samples_value - The minimum samples value for DBSCAN.
+
+    Returns:
+        df- df with outliers removed.
+    """
+    df = dataset.copy()
+
+    numeric_cols = df.select_dtypes(include=['int64', 'float64', 'Int64']).columns
+    numeric_cols = [col for col in numeric_cols if col != 'customer_id']
+
+    if len(numeric_cols) > 0:
+        scaler = StandardScaler()
+        scaled_data = scaler.fit_transform(df[numeric_cols])
+        
+        dbscan = DBSCAN(eps=eps_value, min_samples=min_samples_value)
+        dbscan.fit(scaled_data)
+      
+        outliers_mask = dbscan.labels_ == -1
+        df = df[~outliers_mask]
+
+    return df
+
+
+# ============================================
+# ======== CUSTOMER INFO PIPELINE ============
+# ============================================
+
+
+# DATA TYPES ================================
+#============================================
+
+def customer_handle_datatypes(dataset):
     '''
     Make necessary conversions to some column data types,
     calculate the customer age based on the birthdate and 
     drop the birthdate and loyalty card number columns.
 
-    Input:
+    Parameters:
     - dataset: the df with the original data types.
 
     Output:
@@ -64,39 +114,19 @@ def handle_datatypes(dataset):
    
     return df
 
-# ==========================================
-# 2. DUPLICATES
-# ==========================================
+# IMPOSSIBLE VALUES =========================
+#============================================
 
-def eliminate_duplicates(dataset):
-    '''
-    Removes duplicate rows from the dataset.
-
-    Input:
-    - dataset: the df that may contain duplicate rows.
-
-    Output:
-    - df: the dataset with duplicate rows removed.
-    '''
-    df = dataset.copy()
-    df = df.drop_duplicates()
-    return df
-
-# ==========================================
-# 3. IMPOSSIBLE VALUES
-# ==========================================
-
-def check_impossible_values(dataset):
+def customer_check_impossible_values(dataset):
     '''
     Handles impossible values based on predefined rules.
     
-    Input:
+    Parameters:
     - dataset: the df that may contain impossible values.
     
     Output:
     - df: the dataset with impossible values set to NaN.
     '''
-
     df = dataset.copy()
 
     #Customer Age (0-120)
@@ -104,7 +134,7 @@ def check_impossible_values(dataset):
         df.loc[(df['customer_age'] <= 0) | (df['customer_age'] > 120), 'customer_age'] = np.nan
 
     #Negative values in count columns and 'lifetime_spend' columns
-    count_cols = ['kids_home', 'teens_home', 'number_complaints', 'distinct_stores_visited']
+    count_cols = ['kids_home', 'teens_home', 'number_complaints', 'distinct_stores_visited', 'year_first_transaction']
     for col in count_cols:
         if col in dataset.columns:
             df.loc[df[col] < 0, col] = np.nan
@@ -135,11 +165,11 @@ def check_impossible_values(dataset):
 
     return df
 
-# ==========================================
-# 4. MISSING VALUES
-# ==========================================
 
-def handle_missing_values(dataset):
+# MISSING VALUES ============================
+#============================================
+
+def customer_handle_missing_values(dataset):
     '''
     What it does:
     - Missing Values in'lifetime_spend' columns are filled with 0 (assuming no purchase was made).
@@ -147,8 +177,9 @@ def handle_missing_values(dataset):
     - The probability values are clipped to valid ranges ([0, 1]).
     - Rounds count columns to the nearest integer and converts them to Int64 type.
     
-    Input:
+    Parameters:
         dataset: The dataframe with missing values.
+
     Output:
         df: A dataset with zero missing values.
     '''
@@ -158,76 +189,44 @@ def handle_missing_values(dataset):
     spend_cols = [col for col in dataset.columns if 'lifetime_spend' in col]
     df[spend_cols] = df[spend_cols].fillna(0) 
 
-
     #KNN imputation for numerical columns, but first we need to temporarily scale the data 
-    numeric_cols = df.select_dtypes(include=['int64', 'float64', 'Int64']).columns
-    if len(numeric_cols) > 0:
+    cols_with_nans = df.columns[df.isna().any()].tolist()
+    numeric_cols_with_nans = [col for col in cols_with_nans if df[col].dtype in ['int64', 'float64', 'Int64']]
+
+    support_cols = ['customer_age', 'typical_hour'] 
+    knn_cols = list(set(numeric_cols_with_nans + support_cols))
+    knn_cols = [col for col in knn_cols if col in df.columns]
+
+    if len(knn_cols) > 0:
         scaler = StandardScaler()
         imputer = KNNImputer(n_neighbors=7)
         
-        scaled_data = scaler.fit_transform(df[numeric_cols])
+        scaled_data = scaler.fit_transform(df[knn_cols])
         imputed_data = imputer.fit_transform(scaled_data)
-        df[numeric_cols] = scaler.inverse_transform(imputed_data) #to get the original scale back so we can find outliers and round the values
+        df[knn_cols] = scaler.inverse_transform(imputed_data) #to get the original scale back so we can find outliers and round the values
     
     df['percentage_of_products_bought_promotion'] = df['percentage_of_products_bought_promotion'].clip(0.0, 1.0)
         
-    count_cols = ['kids_home', 'teens_home', 'number_complaints', 'distinct_stores_visited', 'typical_hour', 'customer_age']
+    count_cols = ['kids_home', 'teens_home', 'number_complaints', 'distinct_stores_visited', 'typical_hour', 'customer_age','year_first_transaction']
     for col in count_cols:
         if col in df.columns:
             df[col] = df[col].round().astype('Int64')
         
     return df
-    
 
-# ==========================================
-# 5. OUTLIERS
-# ==========================================
+#FEATURE ENGINEERING ==============================
+#==================================================
 
-def handle_outliers(dataset):
-    '''
-    Finds and removes multidimensional outliers using the DBSCAN algorithm.
-    
-    Input:
-        dataset - The df with potential outliers.
-        
-    Returns:
-        df- df with outliers removed.
-    '''
-
-    df = dataset.copy()
-
-    numeric_cols = df.select_dtypes(include=['int64', 'float64', 'Int64']).columns
-
-    if len(numeric_cols) > 0:
-        scaler = StandardScaler()
-        scaled_data = scaler.fit_transform(df[numeric_cols])
-        
-        dbscan = DBSCAN(eps=3.5, min_samples=5)
-        dbscan.fit(scaled_data)
-      
-        outliers_mask = dbscan.labels_ == -1
-        number_of_outliers = outliers_mask.sum()
-        
-        df = df[~outliers_mask]
-
-    return df
-
-
-# ==========================================
-# 6. FEATURE ENGINEERING
-# ==========================================
-
-def feature_engineering(dataset):
+def customer_feature_engineering(dataset):
     '''
     Extracts underlying information into new predictive features.
     
-    Input:
+    Parameters:
         dataset - The current dataframe.
         
     Ouput:
         df - dataset with the new features (e.g., education_level, hour_sin).
     '''
-
     df = dataset.copy()
 
     # Extract academic titles
@@ -244,15 +243,28 @@ def feature_engineering(dataset):
     df['hour_sin'] = np.sin(2 * np.pi * df['typical_hour'] / 24.0)
     df['hour_cos'] = np.cos(2 * np.pi * df['typical_hour'] / 24.0)
 
+    ordered_columns = [
+        'customer_name', 'customer_gender', 'customer_age', 'education_level',
+        'kids_home', 'teens_home', 'total_children', 'has_children', 
+        'year_first_transaction', 'distinct_stores_visited', 'number_complaints',
+        'typical_hour', 'time_of_day', 'hour_sin', 'hour_cos',
+        'lifetime_total_distinct_products', 'percentage_of_products_bought_promotion',
+        'lifetime_spend_groceries', 'lifetime_spend_vegetables', 'lifetime_spend_meat', 
+        'lifetime_spend_fish', 'lifetime_spend_electronics', 'lifetime_spend_videogames', 
+        'lifetime_spend_nonalcohol_drinks', 'lifetime_spend_alcohol_drinks', 
+        'lifetime_spend_hygiene', 'lifetime_spend_petfood',
+        'latitude', 'longitude'
+    ]
+    
+    final_columns = [col for col in ordered_columns if col in df.columns]
+    df = df[final_columns]
+
     return df   
 
+# FINAL PIPELINE =============================
+#=============================================
 
-# ==========================================
-# PIPELINE 
-# ==========================================
-
-def clean_data(dataset):
-
+def customer_clean_data(dataset):
     """
     This function executes the entire data cleaning pipeline
     in the correct order.
@@ -263,12 +275,111 @@ def clean_data(dataset):
     Output:
     - clean_df: the cleaned dataset ready for modeling.
     """
-    clean_df = handle_datatypes(dataset)
+    clean_df = customer_handle_datatypes(dataset)
     clean_df = eliminate_duplicates(clean_df)
-    clean_df = check_impossible_values(clean_df)
-    clean_df = handle_missing_values(clean_df)
-    clean_df = handle_outliers(clean_df)
-    clean_df = feature_engineering(clean_df)
+    clean_df = customer_check_impossible_values(clean_df)
+    clean_df = customer_handle_missing_values(clean_df)
+    clean_df = handle_outliers(clean_df, eps_value=3.5, min_samples_value=5)
+    clean_df = customer_feature_engineering(clean_df)
 
+    return clean_df
+
+
+# ============================================
+# ======= CUSTOMER BASKET PIPELINE ===========
+# ============================================
+
+# DATA TYPES ================================
+#============================================
+
+def basket_handle_datatypes(dataset):
+    """
+    Safely parses the string representation of lists into actual Python lists.
+    
+    Parameters:
+        dataset (pd.DataFrame): The raw basket dataframe.
+    Output:
+        pd.DataFrame: Dataframe with list_of_goods as iterable lists.
+    """
+    df = dataset.copy()
+    
+    # ast.literal_eval turns the string "['a', 'b']" into a real list ['a', 'b']
+    if 'list_of_goods' in df.columns:
+        df['list_of_goods'] = df['list_of_goods'].apply(
+            lambda x: ast.literal_eval(x) if isinstance(x, str) else x
+        )
+        
+    return df
+
+# FEATURE ENGINEERING ==============================
+#===================================================
+
+def basket_feature_engineering(dataset):
+    """
+    Extracts numerical metrics from the shopping baskets.
+    
+    Parameters:
+        dataset (pd.DataFrame): Dataframe with parsed lists.
+    Output:
+        pd.DataFrame: Dataframe containing the size of each basket.
+    """
+    df = dataset.copy()
+    
+    # Calculates how many items were bought in this specific invoice
+    if 'list_of_goods' in df.columns:
+        df['basket_size'] = df['list_of_goods'].apply(lambda x: len(x) if isinstance(x, list) else 0)
+        
+    return df
+
+# GROUP BY ONE ROW ======================================
+# =======================================================
+
+def basket_aggregate(dataset):
+    """
+    Aggregates multiple transaction rows into a single summary row per customer.
+    
+    Parameters:
+        dataset (pd.DataFrame): Dataframe with individual invoices.
+    Output:
+        pd.DataFrame: A customer-level dataframe ready for merging.
+    """
+    df = dataset.copy()
+    
+    # Group by customer_id so we have one row per customer
+    if 'customer_id' in df.columns:
+        customer_baskets = df.groupby('customer_id').agg(
+            total_trips=('invoice_id', 'nunique'),
+            total_items_bought=('basket_size', 'sum'),
+            average_basket_size=('basket_size', 'mean'),
+            max_basket_size=('basket_size', 'max'),
+            min_basket_size=('basket_size', 'min'),
+            # Substitui a linha do unique_products_bought por esta:
+            unique_products_bought=('list_of_goods', lambda x: len(set(item for sublist in x if isinstance(sublist, list) for item in sublist)))
+        ).reset_index()
+        
+        # Keep the numbers clean
+        customer_baskets['average_basket_size'] = customer_baskets['average_basket_size'].round(2)
+        return customer_baskets
+        
+    return df
+
+# FINAL PIPELINE ==============================
+# =============================================
+
+def basket_clean_data(dataset):
+    """
+    Executes the full cleaning and feature engineering pipeline for the basket data.
+    
+    Parameters:
+        dataset (pd.DataFrame): The raw basket dataframe.
+    Output:
+        pd.DataFrame: A cleaned and feature-engineered customer-level dataframe.
+    """
+    clean_df = basket_handle_datatypes(dataset)
+    clean_df = eliminate_duplicates(clean_df) 
+    clean_df = basket_feature_engineering(clean_df) # we still have one row per invoice
+    clean_df = basket_aggregate(clean_df) # now we have one row per customer with all the basket features aggregated
+    clean_df = handle_outliers(clean_df, eps_value=2.0, min_samples_value=10)
+    
     return clean_df
 
