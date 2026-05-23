@@ -375,11 +375,11 @@ def basket_clean_data(dataset):
     Output:
         pd.DataFrame: A cleaned and feature-engineered customer-level dataframe.
     """
-    clean_df = basket_handle_datatypes(dataset)
-    clean_df = eliminate_duplicates(clean_df) 
+    clean_df = eliminate_duplicates(dataset)
+    clean_df = basket_handle_datatypes(clean_df)
     clean_df = basket_feature_engineering(clean_df) # we still have one row per invoice
     clean_df = basket_aggregate(clean_df) # now we have one row per customer with all the basket features aggregated
-    clean_df = handle_outliers(clean_df, eps_value=2.0, min_samples_value=10)
+    clean_df = handle_outliers(clean_df, eps_value=1.5, min_samples_value=15)
     
     return clean_df
 
