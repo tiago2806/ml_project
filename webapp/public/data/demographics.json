@@ -1,0 +1,29 @@
+{
+  "gender": {
+    "female": 13770,
+    "male": 13705
+  },
+  "age_distribution": {
+    "18-25": 465,
+    "26-35": 4684,
+    "36-45": 4444,
+    "46-55": 4361,
+    "56-65": 4323,
+    "65+": 9198
+  },
+  "education": {
+    "Unknown": 14704,
+    "Bsc": 4275,
+    "Phd": 4264,
+    "Msc": 4232
+  },
+  "time_of_day": {
+    "Morning": 13148,
+    "Afternoon": 9065,
+    "Evening": 5262
+  },
+  "has_children": {
+    "With Children": 23661,
+    "Without Children": 3814
+  }
+}
