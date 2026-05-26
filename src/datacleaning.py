@@ -189,6 +189,10 @@ def customer_handle_missing_values(dataset):
     spend_cols = [col for col in dataset.columns if 'lifetime_spend' in col]
     df[spend_cols] = df[spend_cols].fillna(0) 
 
+    #Percentage of products bought on promotion, set to zero
+    if 'percentage_of_products_bought_promotion' in df.columns:
+        df['percentage_of_products_bought_promotion'] = df['percentage_of_products_bought_promotion'].fillna(0)
+
     #KNN imputation for numerical columns, but first we need to temporarily scale the data 
     cols_with_nans = df.columns[df.isna().any()].tolist()
     numeric_cols_with_nans = [col for col in cols_with_nans if df[col].dtype in ['int64', 'float64', 'Int64']]
@@ -383,3 +387,97 @@ def basket_clean_data(dataset):
     
     return clean_df
 
+def merge_datasets(clean_customer_df, clean_basket_df):
+    """
+    Merges the cleaned customer and basket datasets using an inner join.
+    Ensures only customers with transaction history are retained.
+    """
+    import pandas as pd
+    
+    final_df = pd.merge(
+        clean_customer_df, 
+        clean_basket_df.set_index('customer_id'), 
+        left_index=True, 
+        right_index=True, 
+        how='inner'
+    )
+    
+    return final_df
+
+
+# VALIDATION CHECKS ===========================
+# =============================================
+
+def check_missing(final_df, raw_data_customer, raw_data_basket):
+    """
+    Creates a dataframe comparing the missing values of the final dataset
+    with the original raw datasets.
+    """
+    import pandas as pd
+    
+    final_missing = final_df.isnull().sum()
+    
+    raw_missing = pd.concat([
+        raw_data_customer.isnull().sum(), 
+        raw_data_basket.isnull().sum()
+    ])
+    
+    # Remove duplicates
+    raw_missing = raw_missing[~raw_missing.index.duplicated(keep='first')]
+    
+    missing_df = pd.DataFrame({
+        'Missing Count (Final)': final_missing,
+        'Missing Count (Original)': raw_missing
+    })
+    
+    # Filtro: Mostrar apenas colunas que efetivamente tinham missing values no início
+    missing_df = missing_df[missing_df['Missing Count (Original)'] > 0]
+    
+    return missing_df
+
+def check_datatypes(final_df, raw_data_customer, raw_data_basket):
+    """
+    Creates a dataframe comparing the data types of the final dataset
+    with the original raw datasets.
+    """
+    import pandas as pd
+    
+    final_dtypes = final_df.dtypes
+    
+    raw_dtypes = pd.concat([
+        raw_data_customer.dtypes, 
+        raw_data_basket.dtypes
+    ])
+    
+    # Remove duplicates
+    raw_dtypes = raw_dtypes[~raw_dtypes.index.duplicated(keep='first')]
+    
+    dtypes_df = pd.DataFrame({
+        'Datatype (Final)': final_dtypes.astype(str),
+        'Datatype (Original)': raw_dtypes.astype(str)
+    })
+    
+    # Filtro: Mostrar apenas colunas que já existiam E cujo tipo de dados mudou
+    dtypes_df = dtypes_df[
+        (dtypes_df['Datatype (Final)'] != dtypes_df['Datatype (Original)']) & 
+        (dtypes_df['Datatype (Original)'] != 'nan')
+    ]
+    
+    return dtypes_df
+
+def check_numeric_ranges(final_df):
+    """
+    Returns the minimum and maximum values for key numeric columns 
+    to prove that no logical boundaries were violated.
+    """
+    columns_to_inspect = [
+        'customer_age', 'typical_hour', 'percentage_of_products_bought_promotion', 
+        'total_children', 'year_first_transaction', 'number_complaints',
+        'distinct_stores_visited', 'lifetime_spend_groceries',
+        'total_trips', 'average_basket_size'
+    ]
+    
+    # Check only columns that actually exist in the dataframe to avoid errors
+    cols_present = [col for col in columns_to_inspect if col in final_df.columns]
+    
+    return final_df[cols_present].describe().loc[['min', 'max']]
