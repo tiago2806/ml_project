@@ -40,13 +40,13 @@ class Clusteringworkflow:
         """
         if isinstance(self.algorithm, KMeans):
             dispersion = []
-            for k in range(2, K_range):
+            for k in range(2, K_range+1):
                 model_kmeans = clone(self.algorithm)
                 model_kmeans.set_params(n_clusters=k)
                 model_kmeans.fit(data_scaled)
                 dispersion.append(model_kmeans.inertia_)
 
-            plt.plot(range(2, K_range), dispersion, marker='o')
+            plt.plot(range(2, K_range+1), dispersion, marker='o')
             plt.xlabel('Number of clusters')
             plt.ylabel('Dispersion (inertia)')
             plt.show()
@@ -83,7 +83,7 @@ class Clusteringworkflow:
         
         silhouette_scores = []
 
-        for k in range(2,K_range):
+        for k in range(2,K_range+1):
             model = clone(self.algorithm)
             model.set_params(n_clusters=k)
             
