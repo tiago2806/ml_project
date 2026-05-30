@@ -92,7 +92,7 @@ class Clusteringworkflow:
 
 
         plt.figure(figsize=(8, 5))
-        plt.plot(range(2,K_range), silhouette_scores, marker='o')
+        plt.plot(range(2,K_range+1), silhouette_scores, marker='o')
         plt.xlabel('Number of clusters')
         plt.ylabel('Silhouette Score')
         plt.title('Silhouette Scores')
