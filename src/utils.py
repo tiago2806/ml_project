@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans, AgglomerativeClustering
 from scipy.cluster.hierarchy import dendrogram, linkage
 from sklearn.metrics import silhouette_score, silhouette_samples
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, RobustScaler
 from matplotlib.lines import Line2D 
 
 
@@ -39,7 +39,7 @@ def plot_dendrogram(model, **kwargs):
 
 
 def scaling(data):
-    scaler = StandardScaler()
+    scaler = RobustScaler()
     scaled_data = scaler.fit_transform(data)
 
     return scaled_data
