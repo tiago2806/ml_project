@@ -40,6 +40,7 @@ class Clusteringworkflow:
         """
         if isinstance(self.algorithm, KMeans):
             dispersion = []
+
             for k in range(2, K_range+1):
                 model_kmeans = clone(self.algorithm)
                 model_kmeans.set_params(n_clusters=k)
@@ -59,7 +60,6 @@ class Clusteringworkflow:
             plt.title("Hierarchical Clustering Dendrogram")
             # plot the top three levels of the dendrogram
             plot_dendrogram(model_hierarchical, truncate_mode="level", p=50)
-            plt.axhline(y = 50, color = 'r', linestyle = '-')
             plt.show() 
 
         else:
@@ -81,18 +81,25 @@ class Clusteringworkflow:
         if not isinstance(self.algorithm, (KMeans, AgglomerativeClustering)):
                 raise ValueError("Silhouette only works for KMeans or AgglomerativeClustering")
         
-        silhouette_scores = []
+        scores = []
 
         for k in range(2,K_range+1):
             model = clone(self.algorithm)
-            model.set_params(n_clusters=k)
-            
+
+            if isinstance(model, AgglomerativeClustering):
+                model.set_params(
+                    n_clusters=k,
+                    distance_threshold=None,
+                    compute_full_tree=True
+                )
+            else:
+                model.set_params(n_clusters=k)
+
             labels = model.fit_predict(data_scaled)
-            silhouette_scores.append(silhouette_score(data_scaled, labels))
-
-
+            scores.append(silhouette_score(data_scaled, labels))
+        
         plt.figure(figsize=(8, 5))
-        plt.plot(range(2,K_range+1), silhouette_scores, marker='o')
+        plt.plot(range(2,K_range+1), scores, marker='o')
         plt.xlabel('Number of clusters')
         plt.ylabel('Silhouette Score')
         plt.title('Silhouette Scores')
