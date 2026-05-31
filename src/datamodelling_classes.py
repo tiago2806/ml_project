@@ -6,7 +6,7 @@ from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 from umap import UMAP
 from scipy.cluster.hierarchy import dendrogram, linkage
-from sklearn.metrics import silhouette_score
+from sklearn.metrics import silhouette_score, silhouette_samples
 from sklearn.base import clone
 from utils import (
     plot_dendrogram,
@@ -104,6 +104,75 @@ class Clusteringworkflow:
         plt.ylabel('Silhouette Score')
         plt.title('Silhouette Scores')
         plt.show()
+        
+    def silhouette_plot(self, data_scaled, labels=None, title="Silhouette Plot"):
+        """
+        Creates a silhouette diagram for the fitted clustering solution.
+
+        Parameters:
+        data_scaled -> array/dataframe: scaled data used for clustering.
+        labels -> array-like: cluster labels. If None, labels are generated using self.algorithm.
+        title -> str: plot title.
+
+        Output:
+        Silhouette plot and mean silhouette score.
+        """
+        if labels is None:
+            labels = self.algorithm.fit_predict(data_scaled)
+
+        labels = np.asarray(labels)
+
+        sample_scores = silhouette_samples(data_scaled, labels)
+        overall_score = silhouette_score(data_scaled, labels)
+
+        unique_labels = np.unique(labels)
+        n_clusters = len(unique_labels)
+
+        colors = plt.cm.tab10(np.linspace(0, 1, n_clusters))
+
+        plt.figure(figsize=(8, 6))
+
+        y_lower = 10
+
+        for cluster_label, color in zip(unique_labels, colors):
+            cluster_scores = sample_scores[labels == cluster_label]
+            cluster_scores.sort()
+
+            size_cluster = cluster_scores.shape[0]
+            y_upper = y_lower + size_cluster
+
+            plt.fill_betweenx(
+                np.arange(y_lower, y_upper),
+                0,
+                cluster_scores,
+                facecolor=color,
+                edgecolor=color,
+                alpha=0.8
+            )
+
+            plt.text(
+                -0.05,
+                y_lower + 0.5 * size_cluster,
+                f"Cluster {cluster_label}"
+            )
+
+            y_lower = y_upper + 10
+
+        plt.axvline(
+            x=overall_score,
+            color="red",
+            linestyle="--",
+            label=f"Mean silhouette = {overall_score:.3f}"
+        )
+
+        plt.xlabel("Silhouette coefficient")
+        plt.ylabel("Cluster")
+        plt.title(title)
+        plt.xlim([-0.2, 1])
+        plt.legend()
+        plt.show()
+
+        return overall_score
     
 
     def fit_and_prediction(self, original_data, data_scaled):
@@ -178,4 +247,4 @@ class UMAPWorkflow(DimensionalityReduction):
         super().__init__(algorithm)
     
     def plot(self, labels):
-        visualize_dimensionality_reduction(labels, self.fitted_model)    
+        visualize_dimensionality_reduction(self.fitted_model, labels)    
