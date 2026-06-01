@@ -18,6 +18,7 @@ def plot_missing_values(df, title='Count of Missing Values per Feature'):
     plt.show()
 
 
+
 def plot_distribution(df):
     """
     Plots the distribution for all numeric columns in a clean grid layout.
@@ -46,3 +47,26 @@ def plot_distribution(df):
         
     plt.tight_layout()
     plt.show()
+
+def plot_pie_chart(df, variable, colors, legend, title_):
+
+    """
+    Creates a pie chart to visualize the distribution of a categorical variable.
+
+    Parameters:
+    - df (pd.DataFrame): DataFrame containing the data.
+    - variable (str): The name of the column to plot.
+    - colors (list): List of colors to use for the slices.
+    - legend (list): List of labels for the legend.
+    - title_ (str): Title of the plot.
+    """
+
+    # Count the occurrences of each category
+    counts = df[variable].value_counts()
+    
+    plt.figure(figsize=(10, 6))
+    plt.pie(counts, labels=legend, colors=colors, autopct='%1.1f%%', startangle=140, textprops={'fontsize': 12})
+    plt.title(title_, fontsize=14, fontweight='bold')
+    plt.axis('equal') 
+    plt.show()
+
