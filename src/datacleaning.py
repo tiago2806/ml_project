@@ -244,8 +244,12 @@ def customer_feature_engineering(dataset):
 
     # Time of day and cyclic encoding of typical hour
     df['time_of_day'] = pd.cut(df['typical_hour'], bins=[-1, 5, 11, 17, 24], labels=['Night', 'Morning', 'Afternoon', 'Evening'])
-    df['hour_sin'] = np.sin(2 * np.pi * df['typical_hour'] / 24.0)
-    df['hour_cos'] = np.cos(2 * np.pi * df['typical_hour'] / 24.0)
+
+    df['lifetime_spend_meat_fish'] = df['lifetime_spend_meat'] + df['lifetime_spend_fish']
+    df['lifetime_spend_electronics_videogames'] = df['lifetime_spend_electronics'] + df['lifetime_spend_videogames']
+
+    df['years_tenure'] = datetime.now().year - df['year_first_transaction']
+
 
     #spend_cols = [col for col in dataset.columns if 'lifetime_spend_' in col]
 
@@ -260,11 +264,11 @@ def customer_feature_engineering(dataset):
     ordered_columns = [
         'customer_name', 'customer_gender', 'customer_age', 'education_level',
         'kids_home', 'teens_home', 'total_children', 'has_children', 
-        'year_first_transaction', 'distinct_stores_visited', 'number_complaints',
-        'typical_hour', 'time_of_day', 'hour_sin', 'hour_cos',
+        'year_first_transaction','years_tenure', 'distinct_stores_visited', 'number_complaints',
+        'typical_hour', 'time_of_day', 
         'lifetime_total_distinct_products', 'percentage_of_products_bought_promotion',
         'lifetime_spend_groceries', 'lifetime_spend_vegetables', 'lifetime_spend_meat', 
-        'lifetime_spend_fish', 'lifetime_spend_electronics', 'lifetime_spend_videogames', 
+        'lifetime_spend_fish', 'lifetime_spend_meat_fish', 'lifetime_spend_electronics_videogames', 'lifetime_spend_electronics', 'lifetime_spend_videogames', 
         'lifetime_spend_nonalcohol_drinks', 'lifetime_spend_alcohol_drinks',
         'lifetime_spend_hygiene', 'lifetime_spend_petfood',
         'latitude', 'longitude'
@@ -293,7 +297,7 @@ def customer_clean_data(dataset):
     clean_df = eliminate_duplicates(clean_df)
     clean_df = customer_check_impossible_values(clean_df)
     clean_df = customer_handle_missing_values(clean_df)
-    clean_df = handle_outliers(clean_df, eps_value=3.5, min_samples_value=5)
+    clean_df = handle_outliers(clean_df, eps_value=4.5, min_samples_value=10)
     clean_df = customer_feature_engineering(clean_df)
 
     return clean_df
