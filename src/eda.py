@@ -2,6 +2,9 @@ import pandas as pd
 import seaborn as sns 
 import matplotlib.pyplot as plt 
 import math
+import numpy as np
+import base64
+from IPython.display import IFrame, display
 
 def plot_missing_values(df, title='Count of Missing Values per Feature'):
     """
@@ -64,9 +67,45 @@ def plot_pie_chart(df, variable, colors, legend, title_):
     # Count the occurrences of each category
     counts = df[variable].value_counts()
     
-    plt.figure(figsize=(10, 6))
+    plt.figure(figsize=(4, 6))
     plt.pie(counts, labels=legend, colors=colors, autopct='%1.1f%%', startangle=140, textprops={'fontsize': 12})
-    plt.title(title_, fontsize=14, fontweight='bold')
+    plt.title(title_, fontsize=14)
     plt.axis('equal') 
     plt.show()
 
+
+def plot_correlation_matrix(df, title='Correlation Matrix'):
+    """
+    Plots a correlation matrix heatmap for the numeric features in the DataFrame.
+    """
+    numeric_df = df.select_dtypes(include=['int64', 'float64', 'Int64'])
+    corr_matrix = numeric_df.corr()
+    mask = np.triu(np.ones_like(corr_matrix, dtype=bool))
+    plt.figure(figsize=(12, 10))
+    sns.heatmap(corr_matrix, annot=True, fmt=".2f", cmap='coolwarm', mask=mask, vmin=-1, vmax=1)
+    plt.title(title, fontsize=14, fontweight='bold')
+    plt.show() 
+
+
+
+
+def map(df, sample_size=1200, filename="full_dataset_map.html", random_seed=42):
+    """
+    Saves a full GeoPandas map to an HTML file and displays a sampled version inline.
+    """
+    
+    print(f"Saving full dataset map to {filename}...")
+    n = df.explore()
+    n.save(filename)
+    
+    actual_sample = min(sample_size, len(df))
+    
+    print(f"Rendering inline map with a sample of {actual_sample} points...")
+    sample_data = df.sample(actual_sample, random_state=random_seed)
+    m = sample_data.explore()
+    
+    html_content = m.get_root().render()
+    encoded = base64.b64encode(html_content.encode('utf-8')).decode('utf-8')
+    data_uri = f"data:text/html;charset=utf-8;base64,{encoded}"
+    
+    display(IFrame(src=data_uri, width="100%", height=500))
