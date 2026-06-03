@@ -253,11 +253,15 @@ def customer_feature_engineering(dataset):
 
     spend_cols = [col for col in dataset.columns if 'lifetime_spend' in col]
     df['total_spend'] = df[spend_cols].sum(axis=1)
-    df['perc_spend_vegetables'] = df['lifetime_spend_vegetables'] / (df['total_spend'] + 1e-8)
-    df['perc_spend_meat_fish'] = df['lifetime_spend_meat_fish'] / (df['total_spend'] + 1e-8)
-    df['perc_spend_alcohol'] = df['lifetime_spend_alcohol_drinks'] / (df['total_spend'] + 1e-8)
     df['perc_spend_petfood'] = df['lifetime_spend_petfood'] / (df['total_spend'] + 1e-8)
     df['perc_spend_tech_entertainment'] = df['lifetime_spend_electronics_videogames'] / (df['total_spend'] + 1e-8)
+    df['perc_spend_groceries'] = df['lifetime_spend_groceries'] / (df['total_spend'] + 1e-8)
+    df['perc_spend_meat_fish'] = df['lifetime_spend_meat_fish'] / (df['total_spend'] + 1e-8)
+    df['perc_spend_vegetables'] = df['lifetime_spend_vegetables'] / (df['total_spend'] + 1e-8)
+
+    total_drinks = df['lifetime_spend_nonalcohol_drinks'] + df['lifetime_spend_alcohol_drinks']
+    df['perc_alcohol_drinks'] = df['lifetime_spend_alcohol_drinks'] / (total_drinks + 1e-8)
+    
 
     ordered_columns = [
         'customer_name', 'customer_gender', 'customer_age', 'education_level',
@@ -268,7 +272,8 @@ def customer_feature_engineering(dataset):
         'lifetime_spend_groceries', 'lifetime_spend_vegetables', 'lifetime_spend_meat', 
         'lifetime_spend_fish', 'lifetime_spend_meat_fish', 'lifetime_spend_electronics_videogames', 'lifetime_spend_electronics', 'lifetime_spend_videogames', 
         'lifetime_spend_nonalcohol_drinks', 'lifetime_spend_alcohol_drinks',
-        'lifetime_spend_hygiene', 'lifetime_spend_petfood','total_spend', 'perc_spend_vegetables', 'perc_spend_meat_fish', 'perc_spend_alcohol', 'perc_spend_petfood', 'perc_spend_tech_entertainment',
+        'lifetime_spend_hygiene', 'lifetime_spend_petfood','total_spend', 'perc_spend_vegetables', 'perc_spend_meat_fish', 'perc_spend_petfood', 'perc_spend_tech_entertainment',
+        'perc_spend_meat', 'perc_spend_fish', 'perc_spend_groceries', 'perc_alcohol_drinks',
         'latitude', 'longitude'
     ]
     
