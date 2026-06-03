@@ -39,7 +39,7 @@ def plot_dendrogram(model, **kwargs):
 
 
 def scaling(data):
-    scaler = RobustScaler()
+    scaler = StandardScaler()
     scaled_data = scaler.fit_transform(data)
 
     return scaled_data

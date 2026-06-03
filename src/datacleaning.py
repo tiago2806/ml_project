@@ -258,6 +258,7 @@ def customer_feature_engineering(dataset):
     df['perc_spend_groceries'] = df['lifetime_spend_groceries'] / (df['total_spend'] + 1e-8)
     df['perc_spend_meat_fish'] = df['lifetime_spend_meat_fish'] / (df['total_spend'] + 1e-8)
     df['perc_spend_vegetables'] = df['lifetime_spend_vegetables'] / (df['total_spend'] + 1e-8)
+    df['perc_spend_hygiene'] = df['lifetime_spend_hygiene'] / (df['total_spend'] + 1e-8)
 
     total_drinks = df['lifetime_spend_nonalcohol_drinks'] + df['lifetime_spend_alcohol_drinks']
     df['perc_alcohol_drinks'] = df['lifetime_spend_alcohol_drinks'] / (total_drinks + 1e-8)
@@ -273,7 +274,7 @@ def customer_feature_engineering(dataset):
         'lifetime_spend_fish', 'lifetime_spend_meat_fish', 'lifetime_spend_electronics_videogames', 'lifetime_spend_electronics', 'lifetime_spend_videogames', 
         'lifetime_spend_nonalcohol_drinks', 'lifetime_spend_alcohol_drinks',
         'lifetime_spend_hygiene', 'lifetime_spend_petfood','total_spend', 'perc_spend_vegetables', 'perc_spend_meat_fish', 'perc_spend_petfood', 'perc_spend_tech_entertainment',
-        'perc_spend_meat', 'perc_spend_fish', 'perc_spend_groceries', 'perc_alcohol_drinks',
+        'perc_spend_meat', 'perc_spend_fish', 'perc_spend_groceries', 'perc_alcohol_drinks', 'perc_spend_hygiene',
         'latitude', 'longitude'
     ]
     
