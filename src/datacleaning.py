@@ -1,11 +1,13 @@
 
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 import ast
 from datetime import datetime
 from sklearn.preprocessing import StandardScaler
 from sklearn.impute import KNNImputer
 from sklearn.cluster import DBSCAN
+from sklearn.decomposition import PCA
 
 
 # ==========================================
@@ -71,6 +73,44 @@ def handle_outliers(dataset, eps_value, min_samples_value):
 
     return df
 
+def plot_dbscan_clusters_with_outliers(X_scaled, dbscan_labels, title="DBSCAN Clusters and Outliers"):
+    pca = PCA(n_components=2, random_state=42)
+    X_2d = pca.fit_transform(X_scaled)
+
+    unique_labels = np.unique(dbscan_labels)
+    colors = plt.cm.tab10(np.linspace(0, 1, len(unique_labels)))
+
+    plt.figure(figsize=(10, 6))
+
+    for label, color in zip(unique_labels, colors):
+        mask = dbscan_labels == label
+
+        if label == -1:
+            plt.scatter(
+                X_2d[mask, 0],
+                X_2d[mask, 1],
+                c="red",
+                s=40,
+                alpha=0.9,
+                label="Outliers (-1)"
+            )
+        else:
+            plt.scatter(
+                X_2d[mask, 0],
+                X_2d[mask, 1],
+                color=color,
+                s=20,
+                alpha=0.6,
+                label=f"Cluster {label}"
+            )
+
+    plt.title(title)
+    plt.xlabel("PCA 1")
+    plt.ylabel("PCA 2")
+    plt.legend(bbox_to_anchor=(1.05, 1), loc="upper left")
+    plt.grid(alpha=0.3)
+    plt.tight_layout()
+    plt.show()
 
 # ============================================
 # ======== CUSTOMER INFO PIPELINE ============
@@ -241,7 +281,6 @@ def customer_feature_engineering(dataset):
 
     #Family size and has children
     df['total_children'] = df['kids_home'] + df['teens_home']
-    df['has_children'] = (df['total_children'] > 0).astype(int)
 
     # Time of day and cyclic encoding of typical hour
     df['time_of_day'] = pd.cut(df['typical_hour'], bins=[-1, 5, 11, 17, 24], labels=['Night', 'Morning', 'Afternoon', 'Evening'])
@@ -266,8 +305,8 @@ def customer_feature_engineering(dataset):
 
     ordered_columns = [
         'customer_name', 'customer_gender', 'customer_age', 'education_level',
-        'kids_home', 'teens_home', 'total_children', 'has_children', 
-        'year_first_transaction','years_tenure', 'distinct_stores_visited', 'number_complaints',
+        'kids_home', 'teens_home', 'total_children', 
+        'year_first_transaction', 'years_tenure', 'distinct_stores_visited', 'number_complaints',
         'typical_hour', 'time_of_day', 
         'lifetime_total_distinct_products', 'percentage_of_products_bought_promotion',
         'lifetime_spend_groceries', 'lifetime_spend_vegetables', 'lifetime_spend_meat', 
@@ -412,13 +451,7 @@ def merge_datasets(clean_customer_df, clean_basket_df):
     """
     import pandas as pd
     
-    final_df = pd.merge(
-        clean_customer_df, 
-        clean_basket_df.set_index('customer_id'), 
-        left_index=True, 
-        right_index=True, 
-        how='inner'
-    )
+    final_df = pd.merge(clean_customer_df, clean_basket_df, on='customer_id', how= 'left')
     
     return final_df
 
