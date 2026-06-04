@@ -278,6 +278,7 @@ def customer_feature_engineering(dataset):
     df['education_level'] = df['customer_name'].str.extract(r'(Bsc|Msc|Phd)')
     df['education_level'] = df['education_level'].fillna('Unknown')
     df['customer_name'] = df['customer_name'].str.replace(r'(Bsc\.\s*|Msc\.\s*|Phd\.\s*)', '', regex=True)
+    
 
     #Family size and has children
     df['total_children'] = df['kids_home'] + df['teens_home']
@@ -313,7 +314,7 @@ def customer_feature_engineering(dataset):
         'lifetime_spend_fish', 'lifetime_spend_meat_fish', 'lifetime_spend_electronics_videogames', 'lifetime_spend_electronics', 'lifetime_spend_videogames', 
         'lifetime_spend_nonalcohol_drinks', 'lifetime_spend_alcohol_drinks',
         'lifetime_spend_hygiene', 'lifetime_spend_petfood','total_spend', 'perc_spend_vegetables', 'perc_spend_meat_fish', 'perc_spend_petfood', 'perc_spend_tech_entertainment',
-        'perc_spend_meat', 'perc_spend_fish', 'perc_spend_groceries', 'perc_alcohol_drinks', 'perc_spend_hygiene',
+        'perc_spend_groceries', 'perc_alcohol_drinks', 'perc_spend_hygiene',
         'latitude', 'longitude'
     ]
     
