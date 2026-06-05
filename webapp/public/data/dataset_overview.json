@@ -1,6 +1,6 @@
 {
-  "total_customers": 27475,
-  "total_features": 35,
+  "total_customers": 33005,
+  "total_features": 40,
   "columns": [
     "customer_name",
     "customer_gender",

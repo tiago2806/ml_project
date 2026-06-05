@@ -13,10 +13,7 @@ Chart.defaults.font.size = 12;
 Chart.defaults.plugins.legend.labels.padding = 16;
 Chart.defaults.plugins.legend.labels.usePointStyle = true;
 Chart.defaults.plugins.legend.labels.pointStyle = 'circle';
-Chart.defaults.scale.grid = { color: 'rgba(255,255,255,0.04)' };
-Chart.defaults.scale.border = { color: 'rgba(255,255,255,0.06)' };
-Chart.defaults.elements.bar.borderRadius = 6;
-Chart.defaults.elements.arc.borderWidth = 0;
+// Chart defaults removed temporarily for debugging
 
 // Color palette
 const COLORS = {
@@ -125,27 +122,22 @@ function renderAgeChart(demographics) {
   const values = Object.values(demographics.age_distribution);
 
   new Chart(ctx, {
-    type: 'bar',
+    type: 'doughnut',
     data: {
       labels: keys,
       datasets: [{
-        label: 'Customers',
         data: values,
-        backgroundColor: keys.map((_, i) => alpha(CHART_COLORS[i % CHART_COLORS.length], 0.6)),
-        borderColor: keys.map((_, i) => CHART_COLORS[i % CHART_COLORS.length]),
-        borderWidth: 1,
+        backgroundColor: keys.map((_, i) => alpha(CHART_COLORS[i % CHART_COLORS.length], 0.8)),
+        borderWidth: 0,
       }]
     },
     options: {
       responsive: true,
-      plugins: { legend: { display: false } },
-      scales: {
-        y: {
-          beginAtZero: true,
-          ticks: { font: { size: 10 } }
-        },
-        x: {
-          ticks: { font: { size: 10 } }
+      cutout: '50%',
+      plugins: {
+        legend: {
+          position: 'right',
+          labels: { padding: 12, font: { size: 10 } }
         }
       }
     }
@@ -190,70 +182,118 @@ function renderSpendingChart(spending) {
   const values = Object.values(spending.average_per_category);
 
   new Chart(ctx, {
-    type: 'bar',
+    type: 'doughnut',
     data: {
       labels: labels,
       datasets: [{
-        label: 'Average Spend',
         data: values,
-        backgroundColor: labels.map((_, i) => alpha(CHART_COLORS[i % CHART_COLORS.length], 0.55)),
-        borderColor: labels.map((_, i) => CHART_COLORS[i % CHART_COLORS.length]),
-        borderWidth: 1,
+        backgroundColor: labels.map((_, i) => alpha(CHART_COLORS[i % CHART_COLORS.length], 0.8)),
+        borderWidth: 0,
       }]
     },
     options: {
-      indexAxis: 'y',
       responsive: true,
+      cutout: '40%',
       plugins: {
-        legend: { display: false },
+        legend: { position: 'right', labels: { font: { size: 10 } } },
         tooltip: {
           callbacks: {
-            label: (item) => `€${item.raw.toLocaleString()}`
+            label: (item) => ` €${item.raw.toLocaleString()}`
           }
-        }
-      },
-      scales: {
-        x: {
-          beginAtZero: true,
-          ticks: { callback: v => `€${v}`, font: { size: 10 } }
-        },
-        y: {
-          ticks: { font: { size: 10 } }
         }
       }
     }
   });
 }
 
+function renderTotalSpendChart(spending) {
+  const ctx = document.getElementById('chart-total-spend');
+  if (!ctx || !spending?.total_spend_histogram) return;
 
-function renderChildrenChart(demographics) {
-  const ctx = document.getElementById('chart-children');
-  if (!ctx || !demographics?.has_children) return;
+  const edges = spending.total_spend_histogram.bin_edges;
+  const labels = edges.slice(0, -1).map((e, i) =>
+    `€${Math.round(e)}-€${Math.round(edges[i + 1])}`
+  );
 
   new Chart(ctx, {
-    type: 'doughnut',
+    type: 'line',
     data: {
-      labels: Object.keys(demographics.has_children),
+      labels: labels,
       datasets: [{
-        data: Object.values(demographics.has_children),
-        backgroundColor: [COLORS.green, COLORS.orange],
-        borderWidth: 0,
-        hoverOffset: 8,
+        label: 'Customers',
+        data: spending.total_spend_histogram.counts,
+        backgroundColor: alpha(COLORS.blue, 0.4),
+        borderColor: COLORS.blue,
+        borderWidth: 2,
+        fill: true,
+        tension: 0.4,
+        pointRadius: 0
       }]
     },
     options: {
       responsive: true,
-      cutout: '65%',
-      plugins: {
-        legend: {
-          position: 'bottom',
-          labels: { padding: 16, font: { size: 11 } }
-        },
-      },
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { font: { size: 10 } } },
+        x: { ticks: { font: { size: 9 }, maxRotation: 45 } }
+      }
     }
   });
 }
 
+function renderChildrenChart(demographics) {
+  const ctx = document.getElementById('chart-children');
+  
+  if (!ctx) return;
+  
+  let dataKeys, dataValues, chartType;
+
+  if (demographics?.total_children) {
+    dataKeys = Object.keys(demographics.total_children);
+    dataValues = Object.values(demographics.total_children);
+    
+    new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: dataKeys.map(k => `${k} Children`),
+        datasets: [{
+          data: dataValues,
+          backgroundColor: dataKeys.map((_, i) => alpha(CHART_COLORS[i % CHART_COLORS.length], 0.8)),
+          borderWidth: 0,
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { 
+          legend: { position: 'right', labels: { padding: 12, font: { size: 10 } } }
+        }
+      }
+    });
+  } else if (demographics?.has_children) {
+    dataKeys = Object.keys(demographics.has_children);
+    dataValues = Object.values(demographics.has_children);
+    
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: dataKeys,
+        datasets: [{
+          data: dataValues,
+          backgroundColor: [COLORS.green, COLORS.orange],
+          borderWidth: 0,
+          hoverOffset: 8,
+        }]
+      },
+      options: {
+        responsive: true,
+        cutout: '65%',
+        plugins: {
+          legend: { position: 'bottom', labels: { padding: 16, font: { size: 11 } } },
+        },
+      }
+    });
+  }
+}
 
 function renderBasketChart(basket) {
   const ctx = document.getElementById('chart-basket');
@@ -265,28 +305,26 @@ function renderBasketChart(basket) {
   );
 
   new Chart(ctx, {
-    type: 'bar',
+    type: 'line',
     data: {
       labels: labels,
       datasets: [{
         label: 'Customers',
         data: basket.trips_histogram.counts,
-        backgroundColor: alpha(COLORS.purple, 0.5),
+        backgroundColor: alpha(COLORS.purple, 0.4),
         borderColor: COLORS.purple,
-        borderWidth: 1,
+        borderWidth: 2,
+        fill: true,
+        tension: 0.4,
+        pointRadius: 0
       }]
     },
     options: {
       responsive: true,
       plugins: { legend: { display: false } },
       scales: {
-        y: {
-          beginAtZero: true,
-          ticks: { font: { size: 10 } }
-        },
-        x: {
-          ticks: { font: { size: 9 }, maxRotation: 45 }
-        }
+        y: { beginAtZero: true, ticks: { font: { size: 10 } } },
+        x: { ticks: { font: { size: 9 }, maxRotation: 45 } }
       }
     }
   });
@@ -303,28 +341,20 @@ function renderTimeChart(demographics) {
   const colors = [COLORS.yellow, COLORS.orange, COLORS.purple, COLORS.blue];
 
   new Chart(ctx, {
-    type: 'bar',
+    type: 'doughnut',
     data: {
       labels: labels,
       datasets: [{
-        label: 'Customers',
         data: values,
-        backgroundColor: labels.map((_, i) => alpha(colors[i], 0.55)),
-        borderColor: labels.map((_, i) => colors[i]),
-        borderWidth: 1,
+        backgroundColor: labels.map((_, i) => alpha(colors[i], 0.8)),
+        borderWidth: 0,
       }]
     },
     options: {
       responsive: true,
-      plugins: { legend: { display: false } },
-      scales: {
-        y: {
-          beginAtZero: true,
-          ticks: { font: { size: 10 } }
-        },
-        x: {
-          ticks: { font: { size: 11 } }
-        }
+      cutout: '50%',
+      plugins: { 
+        legend: { position: 'right', labels: { padding: 12, font: { size: 10 } } }
       }
     }
   });
@@ -370,6 +400,8 @@ function renderCorrelationChart(correlation) {
 
   // Draw cells
   for (const { x, y, v } of data) {
+    if (x > y) continue; // Cut the upper triangle
+    
     const val = v;
     let r, g, b;
     if (val > 0) {
@@ -422,6 +454,29 @@ function renderCorrelationChart(correlation) {
   });
 }
 
+function renderGeography(geography) {
+  const mapContainer = document.getElementById('customer-map');
+  if (!mapContainer || !geography || !geography.points) return;
+
+  const map = L.map('customer-map').setView([38.74, -9.15], 11);
+
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    subdomains: 'abcd',
+    maxZoom: 19
+  }).addTo(map);
+
+  geography.points.forEach(point => {
+    L.circleMarker([point.lat, point.lng], {
+      radius: 4,
+      fillColor: COLORS.purple,
+      color: COLORS.purple,
+      weight: 1,
+      opacity: 0.6,
+      fillOpacity: 0.4
+    }).addTo(map);
+  });
+}
 
 // ============================================
 // PREPROCESSING SECTION
@@ -533,7 +588,7 @@ function initNavigation() {
 // FADE-IN ON SCROLL (non-chart elements only)
 // ============================================
 function initScrollAnimations() {
-  const animatableElements = document.querySelectorAll('.comparison-card, .coming-soon-container');
+  const animatableElements = document.querySelectorAll('.comparison-card, .coming-soon-container, .report-block, .fade-in');
   animatableElements.forEach(el => el.classList.add('fade-in'));
 
   const observer = new IntersectionObserver((entries) => {
@@ -549,19 +604,271 @@ function initScrollAnimations() {
 
 
 // ============================================
+// INTERACTIVE TABS
+// ============================================
+function initTabs() {
+  const tabs = document.querySelectorAll('.insight-tab');
+  const contents = document.querySelectorAll('.insight-content');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      // Remove active from all tabs and contents
+      tabs.forEach(t => t.classList.remove('active'));
+      contents.forEach(c => c.classList.remove('active'));
+
+      // Add active to clicked tab
+      tab.classList.add('active');
+
+      // Find and show corresponding content
+      const tabId = tab.getAttribute('data-tab');
+      const content = document.getElementById(`content-${tabId}`);
+      if (content) {
+        content.classList.add('active');
+        
+        // Trigger resize on charts and map to ensure they render correctly
+        setTimeout(() => {
+          window.dispatchEvent(new Event('resize'));
+        }, 50);
+      }
+    });
+  });
+}
+
+// ============================================
+// NEW CHART RENDERING FUNCTIONS
+// ============================================
+
+function renderAgeBarChart(demographics) {
+  const ctx = document.getElementById('chart-age-bar');
+  if (!ctx || !demographics?.age_distribution) return;
+
+  const keys = Object.keys(demographics.age_distribution);
+  const values = Object.values(demographics.age_distribution);
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: keys,
+      datasets: [{
+        label: 'Customers',
+        data: values,
+        backgroundColor: keys.map((_, i) => alpha(CHART_COLORS[i % CHART_COLORS.length], 0.8)),
+        borderWidth: 0,
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { font: { size: 10 } } },
+        x: { ticks: { font: { size: 10 } } }
+      }
+    }
+  });
+}
+
+function renderEducationBarChart(demographics) {
+  const ctx = document.getElementById('chart-education-bar');
+  if (!ctx || !demographics?.education) return;
+
+  const keys = Object.keys(demographics.education);
+  const values = Object.values(demographics.education);
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: keys,
+      datasets: [{
+        label: 'Count',
+        data: values,
+        backgroundColor: [COLORS.blue, COLORS.purple, COLORS.cyan, COLORS.yellow].map(c => alpha(c, 0.8)),
+        borderWidth: 0,
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      indexAxis: 'y',
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { beginAtZero: true, ticks: { font: { size: 10 } } },
+        y: { ticks: { font: { size: 10 } } }
+      }
+    }
+  });
+}
+
+function renderSpendingBarChart(spending) {
+  const ctx = document.getElementById('chart-spending-bar');
+  if (!ctx || !spending?.average_per_category) return;
+
+  const entries = Object.entries(spending.average_per_category).sort((a, b) => b[1] - a[1]);
+  const labels = entries.map(e => e[0]);
+  const values = entries.map(e => e[1]);
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Avg Spend (€)',
+        data: values,
+        backgroundColor: alpha(COLORS.blue, 0.8),
+        borderWidth: 0,
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { font: { size: 10 } } },
+        x: { ticks: { font: { size: 9 }, maxRotation: 45, minRotation: 45 } }
+      }
+    }
+  });
+}
+
+function renderSpendStatsChart(spending) {
+  const ctx = document.getElementById('chart-spend-stats');
+  if (!ctx || !spending?.total_spend_stats) return;
+
+  const stats = spending.total_spend_stats;
+  const labels = ['Mean', 'Median'];
+  const values = [stats.mean, stats.median];
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Total Spend (€)',
+        data: values,
+        backgroundColor: [alpha(COLORS.purple, 0.8), alpha(COLORS.pink, 0.8)],
+        borderWidth: 0,
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      indexAxis: 'y',
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { beginAtZero: true, ticks: { font: { size: 10 } } },
+        y: { ticks: { font: { size: 11 } } }
+      }
+    }
+  });
+}
+
+function renderTripStatsChart(basket) {
+  const ctx = document.getElementById('chart-trip-stats');
+  if (!ctx || !basket['Total Trips'] || !basket['Total Items Bought']) return;
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Mean', 'Median'],
+      datasets: [
+        {
+          label: 'Total Trips',
+          data: [basket['Total Trips'].mean, basket['Total Trips'].median],
+          backgroundColor: alpha(COLORS.green, 0.8),
+          borderRadius: 4
+        },
+        {
+          label: 'Total Items',
+          data: [basket['Total Items Bought'].mean, basket['Total Items Bought'].median],
+          backgroundColor: alpha(COLORS.teal, 0.8),
+          borderRadius: 4
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'bottom', labels: { font: { size: 10 } } } },
+      scales: {
+        y: { beginAtZero: true, ticks: { font: { size: 10 } } },
+        x: { ticks: { font: { size: 11 } } }
+      }
+    }
+  });
+}
+
+function renderBasketSizesChart(basket) {
+  const ctx = document.getElementById('chart-basket-sizes');
+  if (!ctx || !basket['Average Basket Size']) return;
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Min Basket', 'Avg Basket', 'Max Basket'],
+      datasets: [{
+        label: 'Mean Size',
+        data: [
+          basket['Min Basket Size'].mean,
+          basket['Average Basket Size'].mean,
+          basket['Max Basket Size'].mean
+        ],
+        backgroundColor: [alpha(COLORS.orange, 0.8), alpha(COLORS.yellow, 0.8), alpha(COLORS.red, 0.8)],
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { font: { size: 10 } } },
+        x: { ticks: { font: { size: 10 } } }
+      }
+    }
+  });
+}
+
+function renderUniqueProductsChart(basket) {
+  const ctx = document.getElementById('chart-unique-products');
+  if (!ctx || !basket['Unique Products Bought']) return;
+
+  const stats = basket['Unique Products Bought'];
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Mean', 'Median', 'Min', 'Max'],
+      datasets: [{
+        label: 'Unique Products',
+        data: [stats.mean, stats.median, stats.min, stats.max],
+        backgroundColor: alpha(COLORS.cyan, 0.8),
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { font: { size: 10 } } },
+        x: { ticks: { font: { size: 10 } } }
+      }
+    }
+  });
+}
+
+
+// ============================================
 // MAIN INITIALIZATION
 // ============================================
 async function init() {
   console.log('Customer Segmentation Dashboard loading...');
 
   // Load all data in parallel
-  const [overview, demographics, spending, basket, preprocessing, correlation] = await Promise.all([
+  const [overview, demographics, spending, basket, preprocessing, correlation, geography] = await Promise.all([
     loadJSON('/data/dataset_overview.json'),
     loadJSON('/data/demographics.json'),
     loadJSON('/data/spending.json'),
     loadJSON('/data/basket_stats.json'),
     loadJSON('/data/preprocessing.json'),
     loadJSON('/data/correlation.json'),
+    loadJSON('/data/geography.json'),
   ]);
 
   // Debug: log the data to console
@@ -572,17 +879,25 @@ async function init() {
   // Render sections
   renderHeroStats(overview);
   renderGenderChart(demographics);
-  renderAgeChart(demographics);
-  renderEducationChart(demographics);
+  renderAgeBarChart(demographics);
+  renderEducationBarChart(demographics);
   renderSpendingChart(spending);
+  renderSpendingBarChart(spending);
+  renderTotalSpendChart(spending);
+  renderSpendStatsChart(spending);
   renderChildrenChart(demographics);
   renderBasketChart(basket);
   renderTimeChart(demographics);
+  renderTripStatsChart(basket);
+  renderBasketSizesChart(basket);
+  renderUniqueProductsChart(basket);
   renderCorrelationChart(correlation);
+  renderGeography(geography);
   renderPreprocessing(preprocessing);
 
   // Init UI
   initNavigation();
+  initTabs();
 
   // Delay scroll animations to not interfere with chart rendering
   setTimeout(() => {
