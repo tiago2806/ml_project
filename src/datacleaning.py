@@ -447,6 +447,17 @@ def basket_clean_data(dataset):
     
     return clean_df
 
+def basket_clean_data_for_association_rules(dataset):
+    """
+    Cleans the basket dataset for association rule mining while preserving
+    one row per transaction.
+    """
+    clean_df = eliminate_duplicates(dataset)
+    clean_df = basket_handle_datatypes(clean_df)
+    clean_df = basket_feature_engineering(clean_df)
+
+    return clean_df
+
 def merge_datasets(clean_customer_df, clean_basket_df):
     """
     Merges the cleaned customer and basket datasets using an inner join.
