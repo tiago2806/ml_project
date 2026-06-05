@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Customer Segmentation | ML II Project</title>
+  <meta name="description" content="Interactive Customer Segmentation Dashboard - Machine Learning II Project. Explore customer demographics, spending patterns, and behavioral insights." />
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <!-- Navigation -->
+  <nav id="main-nav" class="nav">
+    <div class="nav-brand">
+      <span class="nav-logo">&#9670;</span>
+      <span class="nav-title">SegmentIQ</span>
+    </div>
+    <ul class="nav-links">
+      <li><a href="#hero" class="nav-link active" data-section="hero">Home</a></li>
+      <li><a href="#eda" class="nav-link" data-section="eda">EDA</a></li>
+      <li><a href="#preprocessing" class="nav-link" data-section="preprocessing">Preprocessing</a></li>
+      <li><a href="#clustering" class="nav-link" data-section="clustering">Clustering</a></li>
+      <li><a href="#promotions" class="nav-link" data-section="promotions">Promotions</a></li>
+    </ul>
+  </nav>
+
+  <!-- Hero Section -->
+  <section id="hero" class="section hero-section">
+    <div class="hero-bg-grid"></div>
+    <div class="hero-content">
+      <div class="hero-badge">Machine Learning II &mdash; Customer Segmentation</div>
+      <h1 class="hero-title">
+        Unlocking <span class="gradient-text">Customer Insights</span> Through Data
+      </h1>
+      <p class="hero-subtitle">
+        An interactive exploration of customer demographics, spending behavior, and segmentation 
+        using unsupervised machine learning techniques.
+      </p>
+      <div class="hero-stats" id="hero-stats"></div>
+      <a href="#eda" class="hero-cta">
+        Explore the Data
+        <span class="cta-arrow">&rarr;</span>
+      </a>
+    </div>
+    <div class="scroll-indicator">
+      <div class="scroll-dot"></div>
+    </div>
+  </section>
+
+  <!-- EDA Section -->
+  <section id="eda" class="section">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-tag">01</span>
+        <h2 class="section-title">Exploratory Data Analysis</h2>
+        <p class="section-subtitle">Understanding our customer base through data visualization</p>
+      </div>
+
+      <!-- Demographics Row -->
+      <div class="card-grid">
+        <div class="card" id="card-gender">
+          <div class="card-header">
+            <h3 class="card-title">Gender Distribution</h3>
+          </div>
+          <div class="card-body">
+            <canvas id="chart-gender"></canvas>
+          </div>
+        </div>
+        <div class="card" id="card-age">
+          <div class="card-header">
+            <h3 class="card-title">Age Distribution</h3>
+          </div>
+          <div class="card-body">
+            <canvas id="chart-age"></canvas>
+          </div>
+        </div>
+        <div class="card" id="card-education">
+          <div class="card-header">
+            <h3 class="card-title">Education Level</h3>
+          </div>
+          <div class="card-body">
+            <canvas id="chart-education"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Spending Row -->
+      <div class="card-grid card-grid-2">
+        <div class="card" id="card-spending">
+          <div class="card-header">
+            <h3 class="card-title">Average Spending by Category</h3>
+          </div>
+          <div class="card-body">
+            <canvas id="chart-spending"></canvas>
+          </div>
+        </div>
+        <div class="card" id="card-children">
+          <div class="card-header">
+            <h3 class="card-title">Children at Home</h3>
+          </div>
+          <div class="card-body">
+            <canvas id="chart-children"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Basket & Time Row -->
+      <div class="card-grid card-grid-2">
+        <div class="card" id="card-basket">
+          <div class="card-header">
+            <h3 class="card-title">Shopping Trip Frequency</h3>
+          </div>
+          <div class="card-body">
+            <canvas id="chart-basket"></canvas>
+          </div>
+        </div>
+        <div class="card" id="card-time">
+          <div class="card-header">
+            <h3 class="card-title">Shopping Time Preferences</h3>
+          </div>
+          <div class="card-body">
+            <canvas id="chart-time"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Correlation Matrix -->
+      <div class="card-grid card-grid-single">
+        <div class="card" id="card-correlation">
+          <div class="card-header">
+            <h3 class="card-title">Feature Correlation Matrix</h3>
+          </div>
+          <div class="card-body card-body-heatmap">
+            <canvas id="chart-correlation"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Preprocessing Section -->
+  <section id="preprocessing" class="section section-dark">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-tag">02</span>
+        <h2 class="section-title">Data Preprocessing</h2>
+        <p class="section-subtitle">From raw data to analysis-ready features</p>
+      </div>
+
+      <div class="comparison-container" id="comparison-stats"></div>
+      <div class="pipeline-container" id="pipeline-steps"></div>
+    </div>
+  </section>
+
+  <!-- Clustering Section (Placeholder) -->
+  <section id="clustering" class="section">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-tag">03</span>
+        <h2 class="section-title">Customer Segmentation</h2>
+        <p class="section-subtitle">Discovering natural customer groups using unsupervised learning</p>
+      </div>
+
+      <div class="coming-soon-container">
+        <div class="coming-soon-icon">&#128300;</div>
+        <h3 class="coming-soon-title">Clustering Results Coming Soon</h3>
+        <p class="coming-soon-text">
+          This section will display the results of K-Means and Hierarchical Clustering, 
+          including elbow plots, silhouette scores, PCA visualizations, and detailed cluster profiles.
+        </p>
+        <div class="coming-soon-features">
+          <div class="feature-chip">K-Means Clustering</div>
+          <div class="feature-chip">Hierarchical Clustering</div>
+          <div class="feature-chip">PCA Visualization</div>
+          <div class="feature-chip">t-SNE Mapping</div>
+          <div class="feature-chip">Silhouette Analysis</div>
+          <div class="feature-chip">Cluster Profiles</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Promotions Section (Placeholder) -->
+  <section id="promotions" class="section section-dark">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-tag">04</span>
+        <h2 class="section-title">Targeted Promotions</h2>
+        <p class="section-subtitle">Data-driven campaign strategies for each customer segment</p>
+      </div>
+
+      <div class="coming-soon-container">
+        <div class="coming-soon-icon">&#127919;</div>
+        <h3 class="coming-soon-title">Campaign Strategies Coming Soon</h3>
+        <p class="coming-soon-text">
+          This section will showcase targeted promotion strategies based on association rules 
+          and cluster-specific insights from the customer basket data.
+        </p>
+        <div class="coming-soon-features">
+          <div class="feature-chip">Association Rules</div>
+          <div class="feature-chip">Basket Analysis</div>
+          <div class="feature-chip">Personalized Offers</div>
+          <div class="feature-chip">Cross-selling Strategy</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <p class="footer-text">Machine Learning II &mdash; Customer Segmentation Project</p>
+      <p class="footer-sub">Nova IMS &middot; 2025/2026</p>
+    </div>
+  </footer>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
