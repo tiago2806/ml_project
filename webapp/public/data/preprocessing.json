@@ -6,9 +6,9 @@
     "duplicates": 0
   },
   "clean": {
-    "rows": 33005,
-    "columns": 40,
-    "missing_values": 0,
+    "rows": 33038,
+    "columns": 46,
+    "missing_values": 34377,
     "duplicates": 0
   },
   "pipeline_steps": [
@@ -34,7 +34,7 @@
     },
     {
       "name": "Feature Engineering",
-      "description": "Education level extraction, family features, cyclic hour encoding"
+      "description": "Percentage-based spending features, education level extraction, family features, cyclic hour encoding"
     },
     {
       "name": "Basket Aggregation",

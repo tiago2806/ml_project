@@ -3,6 +3,8 @@
    ============================================ */
 
 import Chart from 'chart.js/auto';
+import { initClustering } from './clustering.js';
+import { initSimulator } from './simulator.js';
 
 // ============================================
 // CHART.JS GLOBAL DEFAULTS
@@ -206,22 +208,33 @@ function renderSpendingChart(spending) {
   });
 }
 
+let chartTotalSpendInstance = null;
+let isTotalSpendLog = false;
+
 function renderTotalSpendChart(spending) {
   const ctx = document.getElementById('chart-total-spend');
   if (!ctx || !spending?.total_spend_histogram) return;
 
-  const edges = spending.total_spend_histogram.bin_edges;
+  if (chartTotalSpendInstance) {
+    chartTotalSpendInstance.destroy();
+  }
+
+  const hist = isTotalSpendLog && spending.total_spend_log_histogram 
+    ? spending.total_spend_log_histogram 
+    : spending.total_spend_histogram;
+
+  const edges = hist.bin_edges;
   const labels = edges.slice(0, -1).map((e, i) =>
-    `€${Math.round(e)}-€${Math.round(edges[i + 1])}`
+    isTotalSpendLog ? `${e.toFixed(1)}-${edges[i + 1].toFixed(1)}` : `€${Math.round(e)}-€${Math.round(edges[i + 1])}`
   );
 
-  new Chart(ctx, {
+  chartTotalSpendInstance = new Chart(ctx, {
     type: 'line',
     data: {
       labels: labels,
       datasets: [{
-        label: 'Customers',
-        data: spending.total_spend_histogram.counts,
+        label: isTotalSpendLog ? 'Customers (Log Scale)' : 'Customers',
+        data: hist.counts,
         backgroundColor: alpha(COLORS.blue, 0.4),
         borderColor: COLORS.blue,
         borderWidth: 2,
@@ -249,16 +262,31 @@ function renderChildrenChart(demographics) {
   let dataKeys, dataValues, chartType;
 
   if (demographics?.total_children) {
-    dataKeys = Object.keys(demographics.total_children);
-    dataValues = Object.values(demographics.total_children);
+    let groups = { "No Children": 0, "1-2 Children": 0, "3-4 Children": 0, "5+ Children": 0 };
+    
+    Object.entries(demographics.total_children).forEach(([k, v]) => {
+      let num = parseInt(k);
+      if (num === 0) groups["No Children"] += v;
+      else if (num <= 2) groups["1-2 Children"] += v;
+      else if (num <= 4) groups["3-4 Children"] += v;
+      else groups["5+ Children"] += v;
+    });
+
+    dataKeys = Object.keys(groups);
+    dataValues = Object.values(groups);
     
     new Chart(ctx, {
-      type: 'pie',
+      type: 'doughnut',
       data: {
-        labels: dataKeys.map(k => `${k} Children`),
+        labels: dataKeys,
         datasets: [{
           data: dataValues,
-          backgroundColor: dataKeys.map((_, i) => alpha(CHART_COLORS[i % CHART_COLORS.length], 0.8)),
+          backgroundColor: [
+            alpha(CHART_COLORS[0], 0.8), 
+            alpha(CHART_COLORS[1], 0.8), 
+            alpha(CHART_COLORS[2], 0.8), 
+            alpha(CHART_COLORS[3], 0.8)
+          ],
           borderWidth: 0,
         }]
       },
@@ -295,22 +323,62 @@ function renderChildrenChart(demographics) {
   }
 }
 
+function renderComplaintsChart(demographics) {
+  const ctx = document.getElementById('chart-complaints');
+  if (!ctx || !demographics?.complaints) return;
+
+  const dataKeys = Object.keys(demographics.complaints);
+  const dataValues = Object.values(demographics.complaints);
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: dataKeys.map(k => `${k} Complaints`),
+      datasets: [{
+        label: 'Customers',
+        data: dataValues,
+        backgroundColor: alpha(COLORS.red, 0.8),
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { font: { size: 10 } } },
+        x: { ticks: { font: { size: 10 } } }
+      }
+    }
+  });
+}
+
+let chartBasketInstance = null;
+let isBasketLog = false;
+
 function renderBasketChart(basket) {
   const ctx = document.getElementById('chart-basket');
   if (!ctx || !basket?.trips_histogram) return;
 
-  const edges = basket.trips_histogram.bin_edges;
+  if (chartBasketInstance) {
+    chartBasketInstance.destroy();
+  }
+
+  const hist = isBasketLog && basket.trips_log_histogram 
+    ? basket.trips_log_histogram 
+    : basket.trips_histogram;
+
+  const edges = hist.bin_edges;
   const labels = edges.slice(0, -1).map((e, i) =>
-    `${Math.round(e)}-${Math.round(edges[i + 1])}`
+    isBasketLog ? `${e.toFixed(1)}-${edges[i + 1].toFixed(1)}` : `${Math.round(e)}-${Math.round(edges[i + 1])}`
   );
 
-  new Chart(ctx, {
+  chartBasketInstance = new Chart(ctx, {
     type: 'line',
     data: {
       labels: labels,
       datasets: [{
-        label: 'Customers',
-        data: basket.trips_histogram.counts,
+        label: isBasketLog ? 'Customers (Log Scale)' : 'Customers',
+        data: hist.counts,
         backgroundColor: alpha(COLORS.purple, 0.4),
         borderColor: COLORS.purple,
         borderWidth: 2,
@@ -454,27 +522,93 @@ function renderCorrelationChart(correlation) {
   });
 }
 
-function renderGeography(geography) {
+let globalMap = null;
+let mapMarkers = [];
+
+function renderGeography(geography, clustersData) {
   const mapContainer = document.getElementById('customer-map');
+  const filterSelect = document.getElementById('map-cluster-filter');
+  
   if (!mapContainer || !geography || !geography.points) return;
 
-  const map = L.map('customer-map').setView([38.74, -9.15], 11);
+  if (!globalMap) {
+    globalMap = L.map('customer-map').setView([38.74, -9.15], 11);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      subdomains: 'abcd',
+      maxZoom: 19
+    }).addTo(globalMap);
+  } else {
+    // Clear existing markers
+    mapMarkers.forEach(m => globalMap.removeLayer(m));
+    mapMarkers = [];
+  }
 
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-    subdomains: 'abcd',
-    maxZoom: 19
-  }).addTo(map);
+  // Populate Filter Dropdown if we have clustersData
+  if (filterSelect && clustersData && filterSelect.options.length <= 1) {
+    Object.values(clustersData).sort((a,b) => a.id - b.id).forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.id;
+      opt.textContent = c.name;
+      filterSelect.appendChild(opt);
+    });
+    
+    filterSelect.addEventListener('change', (e) => {
+      const selectedId = e.target.value;
+      updateMapMarkers(geography.points, selectedId, clustersData);
+    });
+  }
 
-  geography.points.forEach(point => {
-    L.circleMarker([point.lat, point.lng], {
-      radius: 4,
-      fillColor: COLORS.purple,
-      color: COLORS.purple,
+  // Draw initial markers
+  updateMapMarkers(geography.points, 'all', clustersData);
+}
+
+function updateMapMarkers(points, filterClusterId, clustersData = null) {
+  // Remove existing
+  mapMarkers.forEach(m => globalMap.removeLayer(m));
+  mapMarkers = [];
+  
+  // Update map insight text
+  const insightDiv = document.getElementById('map-insight');
+  if (insightDiv) {
+    let clusterName = "Selected Cluster";
+    if (clustersData && filterClusterId !== 'all') {
+      const cData = Object.values(clustersData).find(c => c.id == filterClusterId);
+      if (cData) clusterName = cData.name;
+    }
+    
+    let insightHtml = '';
+    if (filterClusterId === 'all') {
+      insightHtml = '<strong>Global Distribution:</strong> Customers are widely distributed across the map, showing our global footprint.';
+    } else if (clusterName.toLowerCase().includes('karen')) {
+      insightHtml = `<strong>${clusterName}:</strong> The "${clusterName}" cluster is densely concentrated (97%) around the University City (Cidade Universitária) region.`;
+    } else {
+      insightHtml = `<strong>${clusterName}:</strong> This segment shows a distinct geographical distribution compared to the global average. (Update this text with real insights in main.js)`;
+    }
+    
+    insightDiv.innerHTML = `<p style="font-size: 1.1rem; color: var(--text-primary); transition: var(--transition-base);">${insightHtml}</p>`;
+  }
+
+  const filteredPoints = points.filter(p => {
+    if (filterClusterId === 'all') return true;
+    return p.cluster === parseInt(filterClusterId);
+  });
+
+  // Use color based on cluster if available
+  const palette = [COLORS.purple, COLORS.blue, COLORS.cyan, COLORS.green, COLORS.yellow, COLORS.orange, COLORS.red, COLORS.pink];
+
+  filteredPoints.forEach(point => {
+    const color = point.cluster !== undefined ? palette[point.cluster % palette.length] : COLORS.purple;
+    
+    const marker = L.circleMarker([point.lat, point.lng], {
+      radius: filterClusterId === 'all' ? 4 : 5, // make them slightly bigger if filtered
+      fillColor: color,
+      color: color,
       weight: 1,
       opacity: 0.6,
       fillOpacity: 0.4
-    }).addTo(map);
+    }).addTo(globalMap);
+    mapMarkers.push(marker);
   });
 }
 
@@ -861,7 +995,7 @@ async function init() {
   console.log('Customer Segmentation Dashboard loading...');
 
   // Load all data in parallel
-  const [overview, demographics, spending, basket, preprocessing, correlation, geography] = await Promise.all([
+  const [overview, demographics, spending, basket, preprocessing, correlation, geography, clusters] = await Promise.all([
     loadJSON('/data/dataset_overview.json'),
     loadJSON('/data/demographics.json'),
     loadJSON('/data/spending.json'),
@@ -869,35 +1003,59 @@ async function init() {
     loadJSON('/data/preprocessing.json'),
     loadJSON('/data/correlation.json'),
     loadJSON('/data/geography.json'),
+    loadJSON('/data/clusters.json'),
   ]);
 
   // Debug: log the data to console
   console.log('Demographics:', demographics);
   console.log('Spending:', spending);
   console.log('Basket:', basket);
+  console.log('Clusters:', clusters);
 
   // Render sections
   renderHeroStats(overview);
   renderGenderChart(demographics);
   renderAgeBarChart(demographics);
   renderEducationBarChart(demographics);
+  renderChildrenChart(demographics);
+  renderComplaintsChart(demographics);
   renderSpendingChart(spending);
   renderSpendingBarChart(spending);
   renderTotalSpendChart(spending);
   renderSpendStatsChart(spending);
-  renderChildrenChart(demographics);
   renderBasketChart(basket);
   renderTimeChart(demographics);
   renderTripStatsChart(basket);
   renderBasketSizesChart(basket);
   renderUniqueProductsChart(basket);
   renderCorrelationChart(correlation);
-  renderGeography(geography);
+  renderGeography(geography, clusters);
   renderPreprocessing(preprocessing);
 
   // Init UI
   initNavigation();
   initTabs();
+  initClustering(clusters);
+  initSimulator(overview, clusters);
+
+  // Init Transform Toggles
+  const btnSpend = document.getElementById('btn-spend-transform');
+  if (btnSpend) {
+    btnSpend.addEventListener('click', () => {
+      isTotalSpendLog = !isTotalSpendLog;
+      btnSpend.textContent = isTotalSpendLog ? "Revert to Raw Data" : "Apply Log Transform";
+      renderTotalSpendChart(spending);
+    });
+  }
+
+  const btnTrip = document.getElementById('btn-trip-transform');
+  if (btnTrip) {
+    btnTrip.addEventListener('click', () => {
+      isBasketLog = !isBasketLog;
+      btnTrip.textContent = isBasketLog ? "Revert to Raw Data" : "Apply Log Transform";
+      renderBasketChart(basket);
+    });
+  }
 
   // Delay scroll animations to not interfere with chart rendering
   setTimeout(() => {
