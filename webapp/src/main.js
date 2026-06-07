@@ -544,6 +544,18 @@ function renderGeography(geography, clustersData) {
     mapMarkers = [];
   }
 
+  const sampleSlider = document.getElementById('map-sample-size');
+  const sampleVal = document.getElementById('map-sample-val');
+
+  if (sampleSlider && geography.points) {
+    sampleSlider.max = Math.max(12000, geography.points.length);
+    if (!sampleSlider.dataset.initialized) {
+      sampleSlider.value = Math.min(1220, geography.points.length);
+      if (sampleVal) sampleVal.textContent = sampleSlider.value;
+      sampleSlider.dataset.initialized = "true";
+    }
+  }
+
   // Populate Filter Dropdown if we have clustersData
   if (filterSelect && clustersData && filterSelect.options.length <= 1) {
     Object.values(clustersData).sort((a,b) => a.id - b.id).forEach(c => {
@@ -553,17 +565,24 @@ function renderGeography(geography, clustersData) {
       filterSelect.appendChild(opt);
     });
     
-    filterSelect.addEventListener('change', (e) => {
-      const selectedId = e.target.value;
-      updateMapMarkers(geography.points, selectedId, clustersData);
-    });
+    const updateMap = () => {
+      const selectedId = filterSelect.value;
+      const sampleCount = sampleSlider ? parseInt(sampleSlider.value) : geography.points.length;
+      if (sampleVal) sampleVal.textContent = sampleCount;
+      updateMapMarkers(geography.points, selectedId, clustersData, sampleCount);
+    };
+
+    filterSelect.addEventListener('change', updateMap);
+    if (sampleSlider) {
+      sampleSlider.addEventListener('input', updateMap);
+    }
   }
 
   // Draw initial markers
-  updateMapMarkers(geography.points, 'all', clustersData);
+  updateMapMarkers(geography.points, 'all', clustersData, sampleSlider ? parseInt(sampleSlider.value) : 1220);
 }
 
-function updateMapMarkers(points, filterClusterId, clustersData = null) {
+function updateMapMarkers(points, filterClusterId, clustersData = null, sampleCount = 1220) {
   // Remove existing
   mapMarkers.forEach(m => globalMap.removeLayer(m));
   mapMarkers = [];
@@ -589,10 +608,14 @@ function updateMapMarkers(points, filterClusterId, clustersData = null) {
     insightDiv.innerHTML = `<p style="font-size: 1.1rem; color: var(--text-primary); transition: var(--transition-base);">${insightHtml}</p>`;
   }
 
-  const filteredPoints = points.filter(p => {
+  let filteredPoints = points.filter(p => {
     if (filterClusterId === 'all') return true;
     return p.cluster === parseInt(filterClusterId);
   });
+
+  if (sampleCount < filteredPoints.length) {
+    filteredPoints = filteredPoints.slice(0, sampleCount);
+  }
 
   // Use color based on cluster if available
   const palette = [COLORS.purple, COLORS.blue, COLORS.cyan, COLORS.green, COLORS.yellow, COLORS.orange, COLORS.red, COLORS.pink];
@@ -1054,6 +1077,14 @@ async function init() {
       isBasketLog = !isBasketLog;
       btnTrip.textContent = isBasketLog ? "Revert to Raw Data" : "Apply Log Transform";
       renderBasketChart(basket);
+    });
+  }
+
+  // Init Export PDF
+  const btnExport = document.getElementById('btn-export-pdf');
+  if (btnExport) {
+    btnExport.addEventListener('click', () => {
+      window.print();
     });
   }
 

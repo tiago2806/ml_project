@@ -147,7 +147,7 @@ def export_geography(df):
     if 'latitude' in df.columns and 'longitude' in df.columns:
         # Sample to avoid massive JSON
         sample = df[['latitude', 'longitude', 'cluster_kmeans'] if 'cluster_kmeans' in df.columns else ['latitude', 'longitude']].dropna(subset=['latitude', 'longitude']).sample(
-            min(2000, len(df)), random_state=42
+            min(12000, len(df)), random_state=42
         )
         
         points = []
