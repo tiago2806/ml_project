@@ -43,9 +43,9 @@ def eliminate_duplicates(dataset):
     df = df.drop_duplicates()
     return df
 
-def handle_outliers(dataset, eps_value, min_samples_value):
+def handle_outliers(dataset, eps_value, min_samples_value, flag_col= 'is_outlier'):
     """
-    Detects and removes multidimensional outliers using DBSCAN.
+    Detects and flags multidimensional outliers using DBSCAN, without removing rows.
     Allows custom eps and min_samples for different datasets.
 
     Parameters:
@@ -54,7 +54,7 @@ def handle_outliers(dataset, eps_value, min_samples_value):
         min_samples_value - The minimum samples value for DBSCAN.
 
     Returns:
-        df- df with outliers removed.
+        df- df with outliers column
     """
     df = dataset.copy()
 
@@ -69,7 +69,10 @@ def handle_outliers(dataset, eps_value, min_samples_value):
         dbscan.fit(scaled_data)
       
         outliers_mask = dbscan.labels_ == -1
-        df = df[~outliers_mask]
+        df[flag_col] = outliers_mask.astype(int)
+
+    else:
+        df[flag_col] = 0
 
     return df
 
@@ -314,7 +317,7 @@ def customer_feature_engineering(dataset):
         'lifetime_spend_nonalcohol_drinks', 'lifetime_spend_alcohol_drinks',
         'lifetime_spend_hygiene', 'lifetime_spend_petfood','total_spend', 'perc_spend_vegetables', 'perc_spend_meat_fish', 'perc_spend_petfood', 'perc_spend_tech_entertainment',
         'perc_spend_groceries', 'perc_spend_alcohol', 'perc_spend_hygiene',
-        'latitude', 'longitude'
+        'latitude', 'longitude', 'is_customer_outlier'
     ]
     
     final_columns = [col for col in ordered_columns if col in df.columns]
@@ -340,7 +343,7 @@ def customer_clean_data(dataset):
     clean_df = eliminate_duplicates(clean_df)
     clean_df = customer_check_impossible_values(clean_df)
     clean_df = customer_handle_missing_values(clean_df)
-    clean_df = handle_outliers(clean_df, eps_value=4.5, min_samples_value=10)
+    clean_df = handle_outliers(clean_df, eps_value=4.5, min_samples_value=10, flag_col='is_customer_outlier')
     clean_df = customer_feature_engineering(clean_df)
 
     return clean_df
@@ -440,8 +443,19 @@ def basket_clean_data(dataset):
     clean_df = basket_handle_datatypes(clean_df)
     clean_df = basket_feature_engineering(clean_df) # we still have one row per invoice
     clean_df = basket_aggregate(clean_df) # now we have one row per customer with all the basket features aggregated
-    clean_df = handle_outliers(clean_df, eps_value=1.5, min_samples_value=15)
+    clean_df = handle_outliers(clean_df, eps_value=1.5, min_samples_value=15, flag_col='is_basket_outlier')
     
+    return clean_df
+
+def basket_clean_data_for_association_rules(dataset):
+    """
+    Cleans the basket dataset for association rule mining while preserving
+    one row per transaction.
+    """
+    clean_df = eliminate_duplicates(dataset)
+    clean_df = basket_handle_datatypes(clean_df)
+    clean_df = basket_feature_engineering(clean_df)
+
     return clean_df
 
 def merge_datasets(clean_customer_df, clean_basket_df):
