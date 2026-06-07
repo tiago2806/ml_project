@@ -80,16 +80,16 @@ def apply_kmeans(X_scaled, dataset, X, k=8):
     to both the original dataset and the unscaled X matrix, and returns the model.
 
     Parameters:
-    X_scaled (DataFrame/Array): The scaled feature matrix used for training.
-    dataset (DataFrame): The original complete dataset.
-    X (DataFrame): The unscaled feature matrix.
-    k (int): The number of clusters to use (default is 8).
+    X_scaled: The scaled feature matrix used for training.
+    dataset: The original complete dataset.
+    X: The unscaled feature matrix.
+    k: The number of clusters to use (default is 8).
     
     Returns:
     kmeans_model: The trained KMeans object.
     """
 
-    kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
+    kmeans = KMeans(n_clusters=k, random_state=0, n_init=10)
     labels = kmeans.fit_predict(X_scaled)
     
  
@@ -97,9 +97,17 @@ def apply_kmeans(X_scaled, dataset, X, k=8):
     X['cluster_kmeans'] = labels
  
     print(f"Customer Distribution for K={k}:")
-    print("-" * 30)
     print(dataset["cluster_kmeans"].value_counts().sort_index())
-    print("-" * 30)
     
-    # 4. CRUCIAL: Return the model so you don't lose it!
     return kmeans
+
+def groupby(X, cluster_kmeans, method):
+
+    if method == 'mean':
+        grouped = X.groupby(cluster_kmeans).mean().T
+    elif method == 'median':
+        grouped = X.groupby(cluster_kmeans).median().T
+    
+    print(f"Grouped by {method}")
+    
+    return grouped
