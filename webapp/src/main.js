@@ -3,6 +3,8 @@
    ============================================ */
 
 import Chart from 'chart.js/auto';
+import { initClustering } from './clustering.js';
+import { initSimulator } from './simulator.js';
 
 // ============================================
 // CHART.JS GLOBAL DEFAULTS
@@ -13,10 +15,7 @@ Chart.defaults.font.size = 12;
 Chart.defaults.plugins.legend.labels.padding = 16;
 Chart.defaults.plugins.legend.labels.usePointStyle = true;
 Chart.defaults.plugins.legend.labels.pointStyle = 'circle';
-Chart.defaults.scale.grid = { color: 'rgba(255,255,255,0.04)' };
-Chart.defaults.scale.border = { color: 'rgba(255,255,255,0.06)' };
-Chart.defaults.elements.bar.borderRadius = 6;
-Chart.defaults.elements.arc.borderWidth = 0;
+// Chart defaults removed temporarily for debugging
 
 // Color palette
 const COLORS = {
@@ -125,27 +124,22 @@ function renderAgeChart(demographics) {
   const values = Object.values(demographics.age_distribution);
 
   new Chart(ctx, {
-    type: 'bar',
+    type: 'doughnut',
     data: {
       labels: keys,
       datasets: [{
-        label: 'Customers',
         data: values,
-        backgroundColor: keys.map((_, i) => alpha(CHART_COLORS[i % CHART_COLORS.length], 0.6)),
-        borderColor: keys.map((_, i) => CHART_COLORS[i % CHART_COLORS.length]),
-        borderWidth: 1,
+        backgroundColor: keys.map((_, i) => alpha(CHART_COLORS[i % CHART_COLORS.length], 0.8)),
+        borderWidth: 0,
       }]
     },
     options: {
       responsive: true,
-      plugins: { legend: { display: false } },
-      scales: {
-        y: {
-          beginAtZero: true,
-          ticks: { font: { size: 10 } }
-        },
-        x: {
-          ticks: { font: { size: 10 } }
+      cutout: '50%',
+      plugins: {
+        legend: {
+          position: 'right',
+          labels: { padding: 12, font: { size: 10 } }
         }
       }
     }
@@ -190,103 +184,215 @@ function renderSpendingChart(spending) {
   const values = Object.values(spending.average_per_category);
 
   new Chart(ctx, {
-    type: 'bar',
+    type: 'doughnut',
     data: {
       labels: labels,
       datasets: [{
-        label: 'Average Spend',
         data: values,
-        backgroundColor: labels.map((_, i) => alpha(CHART_COLORS[i % CHART_COLORS.length], 0.55)),
-        borderColor: labels.map((_, i) => CHART_COLORS[i % CHART_COLORS.length]),
-        borderWidth: 1,
+        backgroundColor: labels.map((_, i) => alpha(CHART_COLORS[i % CHART_COLORS.length], 0.8)),
+        borderWidth: 0,
       }]
     },
     options: {
-      indexAxis: 'y',
       responsive: true,
+      cutout: '40%',
       plugins: {
-        legend: { display: false },
+        legend: { position: 'right', labels: { font: { size: 10 } } },
         tooltip: {
           callbacks: {
-            label: (item) => `€${item.raw.toLocaleString()}`
+            label: (item) => ` €${item.raw.toLocaleString()}`
           }
-        }
-      },
-      scales: {
-        x: {
-          beginAtZero: true,
-          ticks: { callback: v => `€${v}`, font: { size: 10 } }
-        },
-        y: {
-          ticks: { font: { size: 10 } }
         }
       }
     }
   });
 }
 
+let chartTotalSpendInstance = null;
+let isTotalSpendLog = false;
 
-function renderChildrenChart(demographics) {
-  const ctx = document.getElementById('chart-children');
-  if (!ctx || !demographics?.has_children) return;
+function renderTotalSpendChart(spending) {
+  const ctx = document.getElementById('chart-total-spend');
+  if (!ctx || !spending?.total_spend_histogram) return;
 
-  new Chart(ctx, {
-    type: 'doughnut',
-    data: {
-      labels: Object.keys(demographics.has_children),
-      datasets: [{
-        data: Object.values(demographics.has_children),
-        backgroundColor: [COLORS.green, COLORS.orange],
-        borderWidth: 0,
-        hoverOffset: 8,
-      }]
-    },
-    options: {
-      responsive: true,
-      cutout: '65%',
-      plugins: {
-        legend: {
-          position: 'bottom',
-          labels: { padding: 16, font: { size: 11 } }
-        },
-      },
-    }
-  });
-}
+  if (chartTotalSpendInstance) {
+    chartTotalSpendInstance.destroy();
+  }
 
+  const hist = isTotalSpendLog && spending.total_spend_log_histogram 
+    ? spending.total_spend_log_histogram 
+    : spending.total_spend_histogram;
 
-function renderBasketChart(basket) {
-  const ctx = document.getElementById('chart-basket');
-  if (!ctx || !basket?.trips_histogram) return;
-
-  const edges = basket.trips_histogram.bin_edges;
+  const edges = hist.bin_edges;
   const labels = edges.slice(0, -1).map((e, i) =>
-    `${Math.round(e)}-${Math.round(edges[i + 1])}`
+    isTotalSpendLog ? `${e.toFixed(1)}-${edges[i + 1].toFixed(1)}` : `€${Math.round(e)}-€${Math.round(edges[i + 1])}`
   );
 
-  new Chart(ctx, {
-    type: 'bar',
+  chartTotalSpendInstance = new Chart(ctx, {
+    type: 'line',
     data: {
       labels: labels,
       datasets: [{
-        label: 'Customers',
-        data: basket.trips_histogram.counts,
-        backgroundColor: alpha(COLORS.purple, 0.5),
-        borderColor: COLORS.purple,
-        borderWidth: 1,
+        label: isTotalSpendLog ? 'Customers (Log Scale)' : 'Customers',
+        data: hist.counts,
+        backgroundColor: alpha(COLORS.blue, 0.4),
+        borderColor: COLORS.blue,
+        borderWidth: 2,
+        fill: true,
+        tension: 0.4,
+        pointRadius: 0
       }]
     },
     options: {
       responsive: true,
       plugins: { legend: { display: false } },
       scales: {
-        y: {
-          beginAtZero: true,
-          ticks: { font: { size: 10 } }
-        },
-        x: {
-          ticks: { font: { size: 9 }, maxRotation: 45 }
+        y: { beginAtZero: true, ticks: { font: { size: 10 } } },
+        x: { ticks: { font: { size: 9 }, maxRotation: 45 } }
+      }
+    }
+  });
+}
+
+function renderChildrenChart(demographics) {
+  const ctx = document.getElementById('chart-children');
+  
+  if (!ctx) return;
+  
+  let dataKeys, dataValues, chartType;
+
+  if (demographics?.total_children) {
+    let groups = { "No Children": 0, "1-2 Children": 0, "3-4 Children": 0, "5+ Children": 0 };
+    
+    Object.entries(demographics.total_children).forEach(([k, v]) => {
+      let num = parseInt(k);
+      if (num === 0) groups["No Children"] += v;
+      else if (num <= 2) groups["1-2 Children"] += v;
+      else if (num <= 4) groups["3-4 Children"] += v;
+      else groups["5+ Children"] += v;
+    });
+
+    dataKeys = Object.keys(groups);
+    dataValues = Object.values(groups);
+    
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: dataKeys,
+        datasets: [{
+          data: dataValues,
+          backgroundColor: [
+            alpha(CHART_COLORS[0], 0.8), 
+            alpha(CHART_COLORS[1], 0.8), 
+            alpha(CHART_COLORS[2], 0.8), 
+            alpha(CHART_COLORS[3], 0.8)
+          ],
+          borderWidth: 0,
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { 
+          legend: { position: 'right', labels: { padding: 12, font: { size: 10 } } }
         }
+      }
+    });
+  } else if (demographics?.has_children) {
+    dataKeys = Object.keys(demographics.has_children);
+    dataValues = Object.values(demographics.has_children);
+    
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: dataKeys,
+        datasets: [{
+          data: dataValues,
+          backgroundColor: [COLORS.green, COLORS.orange],
+          borderWidth: 0,
+          hoverOffset: 8,
+        }]
+      },
+      options: {
+        responsive: true,
+        cutout: '65%',
+        plugins: {
+          legend: { position: 'bottom', labels: { padding: 16, font: { size: 11 } } },
+        },
+      }
+    });
+  }
+}
+
+function renderComplaintsChart(demographics) {
+  const ctx = document.getElementById('chart-complaints');
+  if (!ctx || !demographics?.complaints) return;
+
+  const dataKeys = Object.keys(demographics.complaints);
+  const dataValues = Object.values(demographics.complaints);
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: dataKeys.map(k => `${k} Complaints`),
+      datasets: [{
+        label: 'Customers',
+        data: dataValues,
+        backgroundColor: alpha(COLORS.red, 0.8),
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { font: { size: 10 } } },
+        x: { ticks: { font: { size: 10 } } }
+      }
+    }
+  });
+}
+
+let chartBasketInstance = null;
+let isBasketLog = false;
+
+function renderBasketChart(basket) {
+  const ctx = document.getElementById('chart-basket');
+  if (!ctx || !basket?.trips_histogram) return;
+
+  if (chartBasketInstance) {
+    chartBasketInstance.destroy();
+  }
+
+  const hist = isBasketLog && basket.trips_log_histogram 
+    ? basket.trips_log_histogram 
+    : basket.trips_histogram;
+
+  const edges = hist.bin_edges;
+  const labels = edges.slice(0, -1).map((e, i) =>
+    isBasketLog ? `${e.toFixed(1)}-${edges[i + 1].toFixed(1)}` : `${Math.round(e)}-${Math.round(edges[i + 1])}`
+  );
+
+  chartBasketInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: isBasketLog ? 'Customers (Log Scale)' : 'Customers',
+        data: hist.counts,
+        backgroundColor: alpha(COLORS.purple, 0.4),
+        borderColor: COLORS.purple,
+        borderWidth: 2,
+        fill: true,
+        tension: 0.4,
+        pointRadius: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { font: { size: 10 } } },
+        x: { ticks: { font: { size: 9 }, maxRotation: 45 } }
       }
     }
   });
@@ -303,28 +409,20 @@ function renderTimeChart(demographics) {
   const colors = [COLORS.yellow, COLORS.orange, COLORS.purple, COLORS.blue];
 
   new Chart(ctx, {
-    type: 'bar',
+    type: 'doughnut',
     data: {
       labels: labels,
       datasets: [{
-        label: 'Customers',
         data: values,
-        backgroundColor: labels.map((_, i) => alpha(colors[i], 0.55)),
-        borderColor: labels.map((_, i) => colors[i]),
-        borderWidth: 1,
+        backgroundColor: labels.map((_, i) => alpha(colors[i], 0.8)),
+        borderWidth: 0,
       }]
     },
     options: {
       responsive: true,
-      plugins: { legend: { display: false } },
-      scales: {
-        y: {
-          beginAtZero: true,
-          ticks: { font: { size: 10 } }
-        },
-        x: {
-          ticks: { font: { size: 11 } }
-        }
+      cutout: '50%',
+      plugins: { 
+        legend: { position: 'right', labels: { padding: 12, font: { size: 10 } } }
       }
     }
   });
@@ -370,6 +468,8 @@ function renderCorrelationChart(correlation) {
 
   // Draw cells
   for (const { x, y, v } of data) {
+    if (x > y) continue; // Cut the upper triangle
+    
     const val = v;
     let r, g, b;
     if (val > 0) {
@@ -422,6 +522,118 @@ function renderCorrelationChart(correlation) {
   });
 }
 
+let globalMap = null;
+let mapMarkers = [];
+
+function renderGeography(geography, clustersData) {
+  const mapContainer = document.getElementById('customer-map');
+  const filterSelect = document.getElementById('map-cluster-filter');
+  
+  if (!mapContainer || !geography || !geography.points) return;
+
+  if (!globalMap) {
+    globalMap = L.map('customer-map').setView([38.74, -9.15], 11);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      subdomains: 'abcd',
+      maxZoom: 19
+    }).addTo(globalMap);
+  } else {
+    // Clear existing markers
+    mapMarkers.forEach(m => globalMap.removeLayer(m));
+    mapMarkers = [];
+  }
+
+  const sampleSlider = document.getElementById('map-sample-size');
+  const sampleVal = document.getElementById('map-sample-val');
+
+  if (sampleSlider && geography.points) {
+    sampleSlider.max = Math.max(12000, geography.points.length);
+    if (!sampleSlider.dataset.initialized) {
+      sampleSlider.value = Math.min(1220, geography.points.length);
+      if (sampleVal) sampleVal.textContent = sampleSlider.value;
+      sampleSlider.dataset.initialized = "true";
+    }
+  }
+
+  // Populate Filter Dropdown if we have clustersData
+  if (filterSelect && clustersData && filterSelect.options.length <= 1) {
+    Object.values(clustersData).sort((a,b) => a.id - b.id).forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.id;
+      opt.textContent = c.name;
+      filterSelect.appendChild(opt);
+    });
+    
+    const updateMap = () => {
+      const selectedId = filterSelect.value;
+      const sampleCount = sampleSlider ? parseInt(sampleSlider.value) : geography.points.length;
+      if (sampleVal) sampleVal.textContent = sampleCount;
+      updateMapMarkers(geography.points, selectedId, clustersData, sampleCount);
+    };
+
+    filterSelect.addEventListener('change', updateMap);
+    if (sampleSlider) {
+      sampleSlider.addEventListener('input', updateMap);
+    }
+  }
+
+  // Draw initial markers
+  updateMapMarkers(geography.points, 'all', clustersData, sampleSlider ? parseInt(sampleSlider.value) : 1220);
+}
+
+function updateMapMarkers(points, filterClusterId, clustersData = null, sampleCount = 1220) {
+  // Remove existing
+  mapMarkers.forEach(m => globalMap.removeLayer(m));
+  mapMarkers = [];
+  
+  // Update map insight text
+  const insightDiv = document.getElementById('map-insight');
+  if (insightDiv) {
+    let clusterName = "Selected Cluster";
+    if (clustersData && filterClusterId !== 'all') {
+      const cData = Object.values(clustersData).find(c => c.id == filterClusterId);
+      if (cData) clusterName = cData.name;
+    }
+    
+    let insightHtml = '';
+    if (filterClusterId === 'all') {
+      insightHtml = '<strong>Global Distribution:</strong> Customers are widely distributed across the map, showing our global footprint.';
+    } else if (clusterName.toLowerCase().includes('karen')) {
+      insightHtml = `<strong>${clusterName}:</strong> The "${clusterName}" cluster is densely concentrated (97%) around the University City (Cidade Universitária) region.`;
+    } else {
+      insightHtml = `<strong>${clusterName}:</strong> This segment shows a distinct geographical distribution compared to the global average. (Update this text with real insights in main.js)`;
+    }
+    
+    insightDiv.innerHTML = `<p style="font-size: 1.1rem; color: var(--text-primary); transition: var(--transition-base);">${insightHtml}</p>`;
+  }
+
+  let filteredPoints = points.filter(p => {
+    if (filterClusterId === 'all') return true;
+    return p.cluster === parseInt(filterClusterId);
+  });
+
+  if (sampleCount < filteredPoints.length) {
+    filteredPoints = filteredPoints.slice(0, sampleCount);
+  }
+
+  // Use color based on cluster if available
+  const palette = [COLORS.purple, COLORS.blue, COLORS.cyan, COLORS.green, COLORS.yellow, COLORS.orange, COLORS.red, COLORS.pink];
+
+  filteredPoints.forEach(point => {
+    const color = point.cluster !== undefined ? palette[point.cluster % palette.length] : COLORS.purple;
+    
+    const marker = L.circleMarker([point.lat, point.lng], {
+      radius: filterClusterId === 'all' ? 4 : 5, // make them slightly bigger if filtered
+      fillColor: color,
+      color: color,
+      weight: 1,
+      opacity: 0.6,
+      fillOpacity: 0.4
+    }).addTo(globalMap);
+    mapMarkers.push(marker);
+  });
+}
 
 // ============================================
 // PREPROCESSING SECTION
@@ -533,7 +745,7 @@ function initNavigation() {
 // FADE-IN ON SCROLL (non-chart elements only)
 // ============================================
 function initScrollAnimations() {
-  const animatableElements = document.querySelectorAll('.comparison-card, .coming-soon-container');
+  const animatableElements = document.querySelectorAll('.comparison-card, .coming-soon-container, .report-block, .fade-in');
   animatableElements.forEach(el => el.classList.add('fade-in'));
 
   const observer = new IntersectionObserver((entries) => {
@@ -549,40 +761,332 @@ function initScrollAnimations() {
 
 
 // ============================================
+// INTERACTIVE TABS
+// ============================================
+function initTabs() {
+  const tabs = document.querySelectorAll('.insight-tab');
+  const contents = document.querySelectorAll('.insight-content');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      // Remove active from all tabs and contents
+      tabs.forEach(t => t.classList.remove('active'));
+      contents.forEach(c => c.classList.remove('active'));
+
+      // Add active to clicked tab
+      tab.classList.add('active');
+
+      // Find and show corresponding content
+      const tabId = tab.getAttribute('data-tab');
+      const content = document.getElementById(`content-${tabId}`);
+      if (content) {
+        content.classList.add('active');
+        
+        // Trigger resize on charts and map to ensure they render correctly
+        setTimeout(() => {
+          window.dispatchEvent(new Event('resize'));
+        }, 50);
+      }
+    });
+  });
+}
+
+// ============================================
+// NEW CHART RENDERING FUNCTIONS
+// ============================================
+
+function renderAgeBarChart(demographics) {
+  const ctx = document.getElementById('chart-age-bar');
+  if (!ctx || !demographics?.age_distribution) return;
+
+  const keys = Object.keys(demographics.age_distribution);
+  const values = Object.values(demographics.age_distribution);
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: keys,
+      datasets: [{
+        label: 'Customers',
+        data: values,
+        backgroundColor: keys.map((_, i) => alpha(CHART_COLORS[i % CHART_COLORS.length], 0.8)),
+        borderWidth: 0,
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { font: { size: 10 } } },
+        x: { ticks: { font: { size: 10 } } }
+      }
+    }
+  });
+}
+
+function renderEducationBarChart(demographics) {
+  const ctx = document.getElementById('chart-education-bar');
+  if (!ctx || !demographics?.education) return;
+
+  const keys = Object.keys(demographics.education);
+  const values = Object.values(demographics.education);
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: keys,
+      datasets: [{
+        label: 'Count',
+        data: values,
+        backgroundColor: [COLORS.blue, COLORS.purple, COLORS.cyan, COLORS.yellow].map(c => alpha(c, 0.8)),
+        borderWidth: 0,
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      indexAxis: 'y',
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { beginAtZero: true, ticks: { font: { size: 10 } } },
+        y: { ticks: { font: { size: 10 } } }
+      }
+    }
+  });
+}
+
+function renderSpendingBarChart(spending) {
+  const ctx = document.getElementById('chart-spending-bar');
+  if (!ctx || !spending?.average_per_category) return;
+
+  const entries = Object.entries(spending.average_per_category).sort((a, b) => b[1] - a[1]);
+  const labels = entries.map(e => e[0]);
+  const values = entries.map(e => e[1]);
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Avg Spend (€)',
+        data: values,
+        backgroundColor: alpha(COLORS.blue, 0.8),
+        borderWidth: 0,
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { font: { size: 10 } } },
+        x: { ticks: { font: { size: 9 }, maxRotation: 45, minRotation: 45 } }
+      }
+    }
+  });
+}
+
+function renderSpendStatsChart(spending) {
+  const ctx = document.getElementById('chart-spend-stats');
+  if (!ctx || !spending?.total_spend_stats) return;
+
+  const stats = spending.total_spend_stats;
+  const labels = ['Mean', 'Median'];
+  const values = [stats.mean, stats.median];
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Total Spend (€)',
+        data: values,
+        backgroundColor: [alpha(COLORS.purple, 0.8), alpha(COLORS.pink, 0.8)],
+        borderWidth: 0,
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      indexAxis: 'y',
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { beginAtZero: true, ticks: { font: { size: 10 } } },
+        y: { ticks: { font: { size: 11 } } }
+      }
+    }
+  });
+}
+
+function renderTripStatsChart(basket) {
+  const ctx = document.getElementById('chart-trip-stats');
+  if (!ctx || !basket['Total Trips'] || !basket['Total Items Bought']) return;
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Mean', 'Median'],
+      datasets: [
+        {
+          label: 'Total Trips',
+          data: [basket['Total Trips'].mean, basket['Total Trips'].median],
+          backgroundColor: alpha(COLORS.green, 0.8),
+          borderRadius: 4
+        },
+        {
+          label: 'Total Items',
+          data: [basket['Total Items Bought'].mean, basket['Total Items Bought'].median],
+          backgroundColor: alpha(COLORS.teal, 0.8),
+          borderRadius: 4
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'bottom', labels: { font: { size: 10 } } } },
+      scales: {
+        y: { beginAtZero: true, ticks: { font: { size: 10 } } },
+        x: { ticks: { font: { size: 11 } } }
+      }
+    }
+  });
+}
+
+function renderBasketSizesChart(basket) {
+  const ctx = document.getElementById('chart-basket-sizes');
+  if (!ctx || !basket['Average Basket Size']) return;
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Min Basket', 'Avg Basket', 'Max Basket'],
+      datasets: [{
+        label: 'Mean Size',
+        data: [
+          basket['Min Basket Size'].mean,
+          basket['Average Basket Size'].mean,
+          basket['Max Basket Size'].mean
+        ],
+        backgroundColor: [alpha(COLORS.orange, 0.8), alpha(COLORS.yellow, 0.8), alpha(COLORS.red, 0.8)],
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { font: { size: 10 } } },
+        x: { ticks: { font: { size: 10 } } }
+      }
+    }
+  });
+}
+
+function renderUniqueProductsChart(basket) {
+  const ctx = document.getElementById('chart-unique-products');
+  if (!ctx || !basket['Unique Products Bought']) return;
+
+  const stats = basket['Unique Products Bought'];
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Mean', 'Median', 'Min', 'Max'],
+      datasets: [{
+        label: 'Unique Products',
+        data: [stats.mean, stats.median, stats.min, stats.max],
+        backgroundColor: alpha(COLORS.cyan, 0.8),
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { font: { size: 10 } } },
+        x: { ticks: { font: { size: 10 } } }
+      }
+    }
+  });
+}
+
+
+// ============================================
 // MAIN INITIALIZATION
 // ============================================
 async function init() {
   console.log('Customer Segmentation Dashboard loading...');
 
   // Load all data in parallel
-  const [overview, demographics, spending, basket, preprocessing, correlation] = await Promise.all([
+  const [overview, demographics, spending, basket, preprocessing, correlation, geography, clusters] = await Promise.all([
     loadJSON('/data/dataset_overview.json'),
     loadJSON('/data/demographics.json'),
     loadJSON('/data/spending.json'),
     loadJSON('/data/basket_stats.json'),
     loadJSON('/data/preprocessing.json'),
     loadJSON('/data/correlation.json'),
+    loadJSON('/data/geography.json'),
+    loadJSON('/data/clusters.json'),
   ]);
 
   // Debug: log the data to console
   console.log('Demographics:', demographics);
   console.log('Spending:', spending);
   console.log('Basket:', basket);
+  console.log('Clusters:', clusters);
 
   // Render sections
   renderHeroStats(overview);
   renderGenderChart(demographics);
-  renderAgeChart(demographics);
-  renderEducationChart(demographics);
-  renderSpendingChart(spending);
+  renderAgeBarChart(demographics);
+  renderEducationBarChart(demographics);
   renderChildrenChart(demographics);
+  renderComplaintsChart(demographics);
+  renderSpendingChart(spending);
+  renderSpendingBarChart(spending);
+  renderTotalSpendChart(spending);
+  renderSpendStatsChart(spending);
   renderBasketChart(basket);
   renderTimeChart(demographics);
+  renderTripStatsChart(basket);
+  renderBasketSizesChart(basket);
+  renderUniqueProductsChart(basket);
   renderCorrelationChart(correlation);
+  renderGeography(geography, clusters);
   renderPreprocessing(preprocessing);
 
   // Init UI
   initNavigation();
+  initTabs();
+  initClustering(clusters);
+  initSimulator(overview, clusters);
+
+  // Init Transform Toggles
+  const btnSpend = document.getElementById('btn-spend-transform');
+  if (btnSpend) {
+    btnSpend.addEventListener('click', () => {
+      isTotalSpendLog = !isTotalSpendLog;
+      btnSpend.textContent = isTotalSpendLog ? "Revert to Raw Data" : "Apply Log Transform";
+      renderTotalSpendChart(spending);
+    });
+  }
+
+  const btnTrip = document.getElementById('btn-trip-transform');
+  if (btnTrip) {
+    btnTrip.addEventListener('click', () => {
+      isBasketLog = !isBasketLog;
+      btnTrip.textContent = isBasketLog ? "Revert to Raw Data" : "Apply Log Transform";
+      renderBasketChart(basket);
+    });
+  }
+
+  // Init Export PDF
+  const btnExport = document.getElementById('btn-export-pdf');
+  if (btnExport) {
+    btnExport.addEventListener('click', () => {
+      window.print();
+    });
+  }
 
   // Delay scroll animations to not interfere with chart rendering
   setTimeout(() => {

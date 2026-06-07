@@ -14,36 +14,100 @@ from utils import (
     visualize_dimensionality_reduction
 )
 
+def plot_elbow(X_scaled, k_range=15):
+    """
+    Calculates and plots the Elbow Method (Inertia)
+    
+    Parameters:
+    X_scaled: The scaled feature matrix.
+    k_range: The maximum number of clusters to test (default is 15).
+    """
+    inertias = []
+
+    for k in range(2, k_range + 1):
+        experimental_kmeans = KMeans(n_clusters=k, random_state=42).fit(X_scaled)
+        inertias.append(experimental_kmeans.inertia_)
+
+    plt.plot(range(2, k_range + 1), inertias, marker='o')
+    plt.xlabel('Number of clusters')
+    plt.ylabel('Dispersion (inertia)')
+    plt.title('Elbow Method for Optimal K')
+    plt.show()
 
 
-def plot_silhouette(X, labels, title="Silhouette Plot", ax_sil=None):
-    """Side-by-side silhouette diagram and scatter plot."""
-    sample_scores = silhouette_samples(X, labels)
-    overall = sample_scores.mean()
-    n_clusters = len(np.unique(labels))
-    colors = plt.cm.tab10(np.linspace(0, 1, n_clusters))
+def plot_silhouette(X_scaled, K_range=15):
+    scores = []
 
-    fig = None
-    if ax_sil is None:
-        fig, ax_sil = plt.subplots(figsize=(14, 5))
+    for k in range(2,K_range+1):
+        experimental_kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
+        labels = experimental_kmeans.fit_predict(X_scaled)
+        scores.append(silhouette_score(X_scaled, labels))
+    
+    plt.figure(figsize=(8, 5))
+    plt.plot(range(2,K_range+1), scores, marker='o')
+    plt.xlabel('Number of clusters')
+    plt.ylabel('Silhouette Score')
+    plt.title('Silhouette Scores')
+    plt.show()
 
-    # --- Silhouette bars ---
-    y_lower = 10
-    for k, color in zip(range(n_clusters), colors):
-        cluster_scores = np.sort(sample_scores[labels == k])
-        size_k = len(cluster_scores)
-        y_upper = y_lower + size_k
-        ax_sil.fill_betweenx(np.arange(y_lower, y_upper), 0, cluster_scores,
-                             facecolor=color, edgecolor=color, alpha=0.8)
-        ax_sil.text(-0.05, y_lower + size_k / 2, f"C{k}", fontsize=9, ha='right')
-        y_lower = y_upper + 10
+def print_silhouette_scores(X_scaled, k_values=[6, 7, 8, 9, 10]):
+    """
+    Iterates through a list of K values, trains a K-Means model for each, 
+    and prints the corresponding Silhouette Score.
+    
+    Parameters:
+    X_scaled: The scaled feature matrix.
+    k_values: A list of integers representing the number of clusters to test.
+    """
+    print("Evaluating Silhouette Scores:")
+    
+    for k in k_values:
+        experimental_kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
+        labels = experimental_kmeans.fit_predict(X_scaled)
 
-    ax_sil.axvline(overall, color='red', linestyle='--', linewidth=1.5,
-                   label=f'Mean = {overall:.3f}')
-    ax_sil.set_xlabel("Silhouette coefficient")
-    ax_sil.set_ylabel("Cluster")
-    ax_sil.set_title(title)
-    ax_sil.set_xlim([-0.2, 1.0])
-    ax_sil.legend(loc='upper right')
+        # Using sample_size to ensure fast execution without crashing
+        score = silhouette_score(X_scaled, labels, sample_size=5000, random_state=42)
 
-    return overall
+        print(f"k={k} | silhouette={score:.4f}")
+
+
+from sklearn.cluster import KMeans
+
+
+def apply_kmeans(X_scaled, dataset, X, k=8):
+    """
+    Fits a K-Means model to the scaled data, appends the cluster labels 
+    to both the original dataset and the unscaled X matrix, and returns the model.
+
+    Parameters:
+    X_scaled: The scaled feature matrix used for training.
+    dataset: The original complete dataset.
+    X: The unscaled feature matrix.
+    k: The number of clusters to use (default is 8).
+    
+    Returns:
+    kmeans_model: The trained KMeans object.
+    """
+
+    kmeans = KMeans(n_clusters=k, random_state=0, n_init=10)
+    labels = kmeans.fit_predict(X_scaled)
+    
+ 
+    dataset['cluster_kmeans'] = labels
+    X['cluster_kmeans'] = labels
+ 
+    print(f"Customer Distribution for K={k}:")
+    print(dataset["cluster_kmeans"].value_counts().sort_index())
+    
+    return kmeans
+
+def groupby(X, cluster_kmeans, method):
+
+    if method == 'mean':
+        grouped = X.groupby(cluster_kmeans).mean().T
+    elif method == 'median':
+        grouped = X.groupby(cluster_kmeans).median().T
+    
+    print(f"Grouped by {method}")
+    
+    return grouped
