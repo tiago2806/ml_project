@@ -71,10 +71,8 @@ def print_silhouette_scores(X_scaled, k_values=[6, 7, 8, 9, 10]):
         print(f"k={k} | silhouette={score:.4f}")
 
 
-from sklearn.cluster import KMeans
 
-
-def apply_kmeans(X_scaled, dataset, X, k=8):
+def apply_kmeans_perc(X_scaled, dataset, X, k=8):
     """
     Fits a K-Means model to the scaled data, appends the cluster labels 
     to both the original dataset and the unscaled X matrix, and returns the model.
@@ -93,12 +91,40 @@ def apply_kmeans(X_scaled, dataset, X, k=8):
     labels = kmeans.fit_predict(X_scaled)
     
  
-    dataset['cluster_kmeans'] = labels
-    X['cluster_kmeans'] = labels
-    X_scaled['cluster_kmeans'] = labels
+    dataset['cluster_kmeans_perc'] = labels
+    X['cluster_kmeans_perc'] = labels
+    X_scaled['cluster_kmeans_perc'] = labels
  
     print(f"Customer Distribution for K={k}:")
-    print(dataset["cluster_kmeans"].value_counts().sort_index())
+    print(dataset["cluster_kmeans_perc"].value_counts().sort_index())
+    
+    return kmeans
+
+def apply_kmeans_lifetime(X_scaled, dataset, X, k=8):
+    """
+    Fits a K-Means model to the scaled data, appends the cluster labels 
+    to both the original dataset and the unscaled X matrix, and returns the model.
+
+    Parameters:
+    X_scaled: The scaled feature matrix used for training.
+    dataset: The original complete dataset.
+    X: The unscaled feature matrix.
+    k: The number of clusters to use (default is 8).
+    
+    Returns:
+    kmeans_model: The trained KMeans object.
+    """
+
+    kmeans = KMeans(n_clusters=k, random_state=0, n_init=10)
+    labels = kmeans.fit_predict(X_scaled)
+    
+ 
+    dataset['cluster_kmeans_lifetime'] = labels
+    X['cluster_kmeans_lifetime'] = labels
+    X_scaled['cluster_kmeans_lifetime'] = labels
+ 
+    print(f"Customer Distribution for K={k}:")
+    print(dataset["cluster_kmeans_lifetime"].value_counts().sort_index())
     
     return kmeans
 
