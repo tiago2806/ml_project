@@ -95,13 +95,14 @@ def apply_kmeans(X_scaled, dataset, X, k=8):
  
     dataset['cluster_kmeans'] = labels
     X['cluster_kmeans'] = labels
+    X_scaled['cluster_kmeans'] = labels
  
     print(f"Customer Distribution for K={k}:")
     print(dataset["cluster_kmeans"].value_counts().sort_index())
     
     return kmeans
 
-def groupby(X, cluster_kmeans, method):
+def cluster_groupby(X, cluster_kmeans, method):
 
     if method == 'mean':
         grouped = X.groupby(cluster_kmeans).mean().T
