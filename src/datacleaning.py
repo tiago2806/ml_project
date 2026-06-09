@@ -2,6 +2,7 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+
 import ast
 from datetime import datetime
 from sklearn.preprocessing import StandardScaler
@@ -395,57 +396,9 @@ def basket_feature_engineering(dataset):
         
     return df
 
-# GROUP BY ONE ROW ======================================
-# =======================================================
-
-def basket_aggregate(dataset):
-    """
-    Aggregates multiple transaction rows into a single summary row per customer.
-    
-    Parameters:
-        dataset (pd.DataFrame): Dataframe with individual invoices.
-    Output:
-        pd.DataFrame: A customer-level dataframe ready for merging.
-    """
-    df = dataset.copy()
-    
-    # Group by customer_id so we have one row per customer
-    if 'customer_id' in df.columns:
-        customer_baskets = df.groupby('customer_id').agg(
-            total_trips=('invoice_id', 'nunique'),
-            total_items_bought=('basket_size', 'sum'),
-            average_basket_size=('basket_size', 'mean'),
-            max_basket_size=('basket_size', 'max'),
-            min_basket_size=('basket_size', 'min'),
-            # Substitui a linha do unique_products_bought por esta:
-            unique_products_bought=('list_of_goods', lambda x: len(set(item for sublist in x if isinstance(sublist, list) for item in sublist)))
-        ).reset_index()
-        
-        # Keep the numbers clean
-        customer_baskets['average_basket_size'] = customer_baskets['average_basket_size'].round(2)
-        return customer_baskets
-        
-    return df
 
 # FINAL PIPELINE ==============================
 # =============================================
-
-def basket_clean_data(dataset):
-    """
-    Executes the full cleaning and feature engineering pipeline for the basket data.
-    
-    Parameters:
-        dataset (pd.DataFrame): The raw basket dataframe.
-    Output:
-        pd.DataFrame: A cleaned and feature-engineered customer-level dataframe.
-    """
-    clean_df = eliminate_duplicates(dataset)
-    clean_df = basket_handle_datatypes(clean_df)
-    clean_df = basket_feature_engineering(clean_df) # we still have one row per invoice
-    clean_df = basket_aggregate(clean_df) # now we have one row per customer with all the basket features aggregated
-    clean_df = handle_outliers(clean_df, eps_value=1.5, min_samples_value=15, flag_col='is_basket_outlier')
-    
-    return clean_df
 
 def basket_clean_data_for_association_rules(dataset):
     """
@@ -458,91 +411,128 @@ def basket_clean_data_for_association_rules(dataset):
 
     return clean_df
 
-def merge_datasets(clean_customer_df, clean_basket_df):
-    """
-    Merges the cleaned customer and basket datasets using an inner join.
-    Ensures only customers with transaction history are retained.
-    """
-    import pandas as pd
-    
-    final_df = pd.merge(clean_customer_df, clean_basket_df, on='customer_id', how= 'left')
-    
-    return final_df
-
 
 # VALIDATION CHECKS ===========================
 # =============================================
 
-def check_missing(final_df, raw_data_customer, raw_data_basket):
+def check_missing(clean_customer_df, basket_transactions_df, raw_data_customer, raw_data_basket):
     """
-    Creates a dataframe comparing the missing values of the final dataset
+    Creates a dataframe comparing the missing values of the processed datasets
     with the original raw datasets.
     """
-    import pandas as pd
-    
-    final_missing = final_df.isnull().sum()
-    
-    raw_missing = pd.concat([
-        raw_data_customer.isnull().sum(), 
-        raw_data_basket.isnull().sum()
-    ])
-    
-    # Remove duplicates
-    raw_missing = raw_missing[~raw_missing.index.duplicated(keep='first')]
-    
-    missing_df = pd.DataFrame({
-        'Missing Count (Final)': final_missing,
-        'Missing Count (Original)': raw_missing
-    })
-    
-    # Filtro: Mostrar apenas colunas que efetivamente tinham missing values no início
-    missing_df = missing_df[missing_df['Missing Count (Original)'] > 0]
-    
-    return missing_df
 
-def check_datatypes(final_df, raw_data_customer, raw_data_basket):
-    """
-    Creates a dataframe comparing the data types of the final dataset
-    with the original raw datasets.
-    """
-    import pandas as pd
-    
-    final_dtypes = final_df.dtypes
-    
-    raw_dtypes = pd.concat([
-        raw_data_customer.dtypes, 
-        raw_data_basket.dtypes
-    ])
-    
-    # Remove duplicates
-    raw_dtypes = raw_dtypes[~raw_dtypes.index.duplicated(keep='first')]
-    
-    dtypes_df = pd.DataFrame({
-        'Datatype (Final)': final_dtypes.astype(str),
-        'Datatype (Original)': raw_dtypes.astype(str)
+    customer_missing_df = pd.DataFrame({
+        'Missing Count (Processed)': clean_customer_df.isnull().sum(),
+        'Missing Count (Original)': raw_data_customer.isnull().sum()
     })
-    
-    # Filtro: Mostrar apenas colunas que já existiam E cujo tipo de dados mudou
-    dtypes_df = dtypes_df[
-        (dtypes_df['Datatype (Final)'] != dtypes_df['Datatype (Original)']) & 
-        (dtypes_df['Datatype (Original)'] != 'nan')
+
+    basket_missing_df = pd.DataFrame({
+        'Missing Count (Processed)': basket_transactions_df.isnull().sum(),
+        'Missing Count (Original)': raw_data_basket.isnull().sum()
+    })
+
+    customer_missing_df = customer_missing_df[
+        (customer_missing_df['Missing Count (Processed)'] > 0) |
+        (customer_missing_df['Missing Count (Original)'] > 0)
     ]
-    
-    return dtypes_df
 
-def check_numeric_ranges(final_df):
+    basket_missing_df = basket_missing_df[
+        (basket_missing_df['Missing Count (Processed)'] > 0) |
+        (basket_missing_df['Missing Count (Original)'] > 0)
+    ]
+
+    return customer_missing_df, basket_missing_df
+
+
+def check_datatypes(clean_customer_df, basket_transactions_df, raw_data_customer, raw_data_basket):
+    """
+    Creates dataframes comparing the data types of the processed datasets
+    with the original raw datasets.
+
+    Parameters:
+        clean_customer_df: cleaned customer-level dataset.
+        basket_transactions_df: cleaned transaction-level basket dataset.
+        raw_data_customer: original customer dataset.
+        raw_data_basket: original basket dataset.
+
+    Returns:
+        customer_dtypes_df: datatype comparison for customer data.
+        basket_dtypes_df: datatype comparison for basket data.
+    """
+
+    customer_dtypes_df = pd.DataFrame({
+        'Datatype (Processed)': clean_customer_df.dtypes.astype(str),
+        'Datatype (Original)': raw_data_customer.dtypes.astype(str)
+    })
+
+    basket_dtypes_df = pd.DataFrame({
+        'Datatype (Processed)': basket_transactions_df.dtypes.astype(str),
+        'Datatype (Original)': raw_data_basket.dtypes.astype(str)
+    })
+
+    customer_dtypes_df = customer_dtypes_df[
+        customer_dtypes_df['Datatype (Processed)'] != customer_dtypes_df['Datatype (Original)']
+    ]
+
+    basket_dtypes_df = basket_dtypes_df[
+        basket_dtypes_df['Datatype (Processed)'] != basket_dtypes_df['Datatype (Original)']
+    ]
+
+    return customer_dtypes_df, basket_dtypes_df
+
+
+def check_numeric_ranges(clean_customer_df, basket_transactions_df):
     """
     Returns the minimum and maximum values for key numeric columns 
     to prove that no logical boundaries were violated.
+
+    Parameters:
+        clean_customer_df: cleaned customer-level dataset.
+        basket_transactions_df: cleaned transaction-level basket dataset.
+
+    Returns:
+        customer_ranges: min and max values for selected customer variables.
+        basket_ranges: min and max values for selected basket variables.
     """
-    columns_to_inspect = [
-        'customer_age', 'typical_hour', 'percentage_of_products_bought_promotion', 
-        'total_children', 'year_first_transaction', 'number_complaints',
-        'distinct_stores_visited', 'lifetime_spend_groceries',
-        'total_trips', 'average_basket_size'
+
+    customer_columns_to_inspect = [
+        'customer_age',
+        'typical_hour',
+        'percentage_of_products_bought_promotion',
+        'total_children',
+        'year_first_transaction',
+        'years_tenure',
+        'number_complaints',
+        'distinct_stores_visited',
+        'lifetime_spend_groceries',
+        'total_spend',
+        'perc_spend_vegetables',
+        'perc_spend_meat_fish',
+        'perc_spend_petfood',
+        'perc_spend_tech_entertainment',
+        'perc_spend_groceries',
+        'perc_spend_alcohol',
+        'perc_spend_hygiene',
+        'latitude',
+        'longitude',
+        'is_customer_outlier'
     ]
-    
-    # Check only columns that actually exist in the dataframe to avoid errors
-    cols_present = [col for col in columns_to_inspect if col in final_df.columns]
-    
-    return final_df[cols_present].describe().loc[['min', 'max']]
+
+    basket_columns_to_inspect = [
+        'basket_size'
+    ]
+
+    customer_cols_present = [
+        col for col in customer_columns_to_inspect
+        if col in clean_customer_df.columns
+    ]
+
+    basket_cols_present = [
+        col for col in basket_columns_to_inspect
+        if col in basket_transactions_df.columns
+    ]
+
+    customer_ranges = clean_customer_df[customer_cols_present].describe().loc[['min', 'max']]
+    basket_ranges = basket_transactions_df[basket_cols_present].describe().loc[['min', 'max']]
+
+    return customer_ranges, basket_ranges
