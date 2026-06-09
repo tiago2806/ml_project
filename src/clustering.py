@@ -115,8 +115,7 @@ def apply_kmeans_perc(X_scaled, dataset, X, k):
  
     dataset['cluster_kmeans_perc'] = labels
     X['cluster_kmeans_perc'] = labels
-    X_scaled['cluster_kmeans_perc'] = labels
- 
+
     print(f"Customer Distribution for K={k}:")
     print(dataset["cluster_kmeans_perc"].value_counts().sort_index())
     
@@ -143,7 +142,6 @@ def apply_hierarchical_perc(X_scaled, dataset, X, k):
  
     dataset['cluster_agglomerative_perc'] = labels
     X['cluster_agglomerative_perc'] = labels
-    X_scaled['cluster_agglomerative_perc'] = labels
  
     print(f"Customer Distribution for K={k}:")
     print(dataset["cluster_agglomerative_perc"].value_counts().sort_index())
@@ -198,8 +196,7 @@ def apply_hierarchical_lifetime(X_scaled, dataset, X, k):
  
     dataset['cluster_agglomerative_lifetime'] = labels
     X['cluster_agglomerative_lifetime'] = labels
-    X_scaled['cluster_agglomerative_lifetime'] = labels
- 
+    
     print(f"Customer Distribution for K={k}:")
     print(dataset["cluster_agglomerative_lifetime"].value_counts().sort_index())
     
