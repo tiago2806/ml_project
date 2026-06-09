@@ -446,7 +446,7 @@ def check_missing(clean_customer_df, basket_transactions_df, raw_data_customer, 
 
 def check_datatypes(clean_customer_df, basket_transactions_df, raw_data_customer, raw_data_basket):
     """
-    Creates a dataframe comparing the data types of the processed datasets
+    Creates dataframes comparing the data types of the processed datasets
     with the original raw datasets.
 
     Parameters:
