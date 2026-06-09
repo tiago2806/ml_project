@@ -284,16 +284,12 @@ def customer_feature_engineering(dataset):
     df['customer_name'] = df['customer_name'].str.replace(r'(Bsc\.\s*|Msc\.\s*|Phd\.\s*)', '', regex=True)
     
 
-    #Family size and has children
-    df['total_children'] = df['kids_home'] + df['teens_home']
 
     # Time of day and cyclic encoding of typical hour
     df['time_of_day'] = pd.cut(df['typical_hour'], bins=[-1, 5, 11, 17, 24], labels=['Night', 'Morning', 'Afternoon', 'Evening'])
 
     df['lifetime_spend_meat_fish'] = df['lifetime_spend_meat'] + df['lifetime_spend_fish']
     df['lifetime_spend_electronics_videogames'] = df['lifetime_spend_electronics'] + df['lifetime_spend_videogames']
-
-    df['years_tenure'] = datetime.now().year - df['year_first_transaction']
 
     spend_cols = [col for col in dataset.columns if 'lifetime_spend' in col]
     df['total_spend'] = df[spend_cols].sum(axis=1)

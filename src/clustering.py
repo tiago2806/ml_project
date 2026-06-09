@@ -25,7 +25,7 @@ def plot_elbow(X_scaled, k_range=15):
     inertias = []
 
     for k in range(2, k_range + 1):
-        experimental_kmeans = KMeans(n_clusters=k, random_state=42).fit(X_scaled)
+        experimental_kmeans = KMeans(n_clusters=k, random_state=0, n_init=10).fit(X_scaled)
         inertias.append(experimental_kmeans.inertia_)
 
     plt.plot(range(2, k_range + 1), inertias, marker='o')
@@ -45,7 +45,7 @@ def plot_silhouette_kmeans(X_scaled, K_range=15):
     scores = []
 
     for k in range(2,K_range+1):
-        experimental_kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
+        experimental_kmeans = KMeans(n_clusters=k, random_state=0, n_init=10)
         labels = experimental_kmeans.fit_predict(X_scaled)
         scores.append(silhouette_score(X_scaled, labels))
     
@@ -84,11 +84,11 @@ def print_silhouette_scores(X_scaled, k_values=[6, 7, 8, 9, 10]):
     print("Evaluating Silhouette Scores:")
     
     for k in k_values:
-        experimental_kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
+        experimental_kmeans = KMeans(n_clusters=k, random_state=0, n_init=10)
         labels = experimental_kmeans.fit_predict(X_scaled)
 
         # Using sample_size to ensure fast execution without crashing
-        score = silhouette_score(X_scaled, labels, sample_size=5000, random_state=42)
+        score = silhouette_score(X_scaled, labels, sample_size=5000, random_state=0)
 
         print(f"k={k} | silhouette={score:.4f}")
 
@@ -171,7 +171,6 @@ def apply_kmeans_lifetime(X_scaled, dataset, X, k):
  
     dataset['cluster_kmeans_lifetime'] = labels
     X['cluster_kmeans_lifetime'] = labels
-    X_scaled['cluster_kmeans_lifetime'] = labels
  
     print(f"Customer Distribution for K={k}:")
     print(dataset["cluster_kmeans_lifetime"].value_counts().sort_index())
