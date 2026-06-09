@@ -29,7 +29,7 @@ const ICONS = {
 
 export function initSimulator(overview, clusters) {
   if (!overview || !overview.numeric_stats || !clusters) return;
-  
+
   globalStats = overview.numeric_stats;
   clusterData = clusters;
 
@@ -46,7 +46,7 @@ export function initSimulator(overview, clusters) {
           displayValue = `€${displayValue}`;
         }
         valDisplay.textContent = displayValue;
-        
+
         // Trigger prediction
         predictPersona();
       });
@@ -87,23 +87,23 @@ function predictPersona() {
 
   Object.values(clusterData).forEach(cluster => {
     let distanceSq = 0;
-    
+
     Object.keys(cluster.features).forEach(feature => {
       // Standardize the cluster's feature mean
       const clusterMean = cluster.features[feature] || 0;
       const globalMean = globalStats[feature] ? globalStats[feature].mean : 0;
       const std = globalStats[feature] ? globalStats[feature].std : 1;
-      
+
       const standardizedClusterVal = std > 0 ? (clusterMean - globalMean) / std : 0;
-      
+
       // If feature is in sliders, use user's standardized input, else 0 (global mean)
       const userVal = standardizedInput[feature] !== undefined ? standardizedInput[feature] : 0;
-      
+
       const diff = userVal - standardizedClusterVal;
-      
+
       // Give slightly higher weight to the slider features so they feel more responsive
       const weight = standardizedInput[feature] !== undefined ? 2.0 : 1.0;
-      
+
       distanceSq += (diff * diff) * weight;
     });
 
@@ -126,16 +126,16 @@ function updateSimulatorUI(clusterId, score) {
   const nameEl = document.getElementById('sim-result-name');
   const iconEl = document.getElementById('sim-result-icon');
   const scoreEl = document.getElementById('sim-result-score');
-  
+
   // Find the cluster data
   const clusterKey = `cluster_${clusterId}`;
   const cluster = clusterData[clusterKey];
-  
+
   if (cluster) {
     nameEl.textContent = cluster.name;
     iconEl.textContent = ICONS[clusterId] || '👤';
     scoreEl.textContent = `${score}%`;
-    
+
     // Animate
     iconEl.style.animation = 'none';
     iconEl.offsetHeight; // trigger reflow
