@@ -2,6 +2,9 @@
 # Customer Segmentation & Market Basket Analytics
 > **Course:** Machine Learning II | NOVA Information Management School
 
+# Customer Segmentation Project
+GitHub Repository: https://github.com/tiago2806/ml_project
+
 ## Our Group
 
 | Name | Student ID |
@@ -24,7 +27,7 @@ For this project, we had access to two datasets: one containing customer data an
 │   ├── customer_basket.csv              # Raw Bakset Transactions
 │   ├── clean_customer_info.csv          # Customer Info Pre-Processed and ready for the modelling
 │   ├── customer_basket_transactions.pkl # Pickle to presever the list datatypes on the basket
-│   ├── customer_clusters.csv            # Dataframe matching each customer_id to its final assigned cluster
+│   ├── customer_final_clusters.csv            # Dataframe matching each customer_id to its final assigned cluster
 │   └── full_dataset_map.csv             # All the customers represented on the map (without defined sample size)
 ├── notebooks/
 │   ├── 01_EDA.ipynb                     # Exploratory Data Analysis, outlier, duplicates and impossible values detection and feature discovery

@@ -4,6 +4,7 @@ import numpy as np
 from mlxtend.preprocessing import TransactionEncoder
 from mlxtend.frequent_patterns import apriori
 from mlxtend.frequent_patterns import association_rules
+from collections import Counter
 
 
 
@@ -38,3 +39,5 @@ def generate_rules(cluster, min_support=0.02, min_confidence=0.15):
 
     
     return transactions_items_train, support_itemsets_train, rules_train
+
+
