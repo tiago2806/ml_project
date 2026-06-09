@@ -34,8 +34,14 @@ def plot_elbow(X_scaled, k_range=15):
     plt.title('Elbow Method for Optimal K')
     plt.show()
 
+def dendrogram_visualization(X_scaled):
+    experimental_hierarchical = AgglomerativeClustering(linkage='ward', distance_threshold=0, n_clusters=None).fit(X_scaled)
+    fig, ax = plt.subplots()
+    plt.title("Hierarchical Clustering Dendrogram")
+    plot_dendrogram(experimental_hierarchical, truncate_mode="level", p=50)
+    plt.show()
 
-def plot_silhouette(X_scaled, K_range=15):
+def plot_silhouette_kmeans(X_scaled, K_range=15):
     scores = []
 
     for k in range(2,K_range+1):
@@ -49,6 +55,22 @@ def plot_silhouette(X_scaled, K_range=15):
     plt.ylabel('Silhouette Score')
     plt.title('Silhouette Scores')
     plt.show()
+
+def plot_silhouette_hierarchical(X_scaled, K_range=15):
+    scores = []
+
+    for k in range(2,K_range+1):
+        experimental_hierarchical = AgglomerativeClustering(n_clusters=k, linkage='ward')
+        labels = experimental_hierarchical.fit_predict(X_scaled)
+        scores.append(silhouette_score(X_scaled, labels))
+    
+    plt.figure(figsize=(8, 5))
+    plt.plot(range(2,K_range+1), scores, marker='o')
+    plt.xlabel('Number of clusters')
+    plt.ylabel('Silhouette Score')
+    plt.title('Silhouette Scores')
+    plt.show()
+
 
 def print_silhouette_scores(X_scaled, k_values=[6, 7, 8, 9, 10]):
     """
@@ -72,7 +94,7 @@ def print_silhouette_scores(X_scaled, k_values=[6, 7, 8, 9, 10]):
 
 
 
-def apply_kmeans_perc(X_scaled, dataset, X, k=8):
+def apply_kmeans_perc(X_scaled, dataset, X, k):
     """
     Fits a K-Means model to the scaled data, appends the cluster labels 
     to both the original dataset and the unscaled X matrix, and returns the model.
@@ -100,7 +122,35 @@ def apply_kmeans_perc(X_scaled, dataset, X, k=8):
     
     return kmeans
 
-def apply_kmeans_lifetime(X_scaled, dataset, X, k=8):
+def apply_hierarchical_perc(X_scaled, dataset, X, k):
+    """
+    Fits a hierarchical model to the scaled data, appends the cluster labels 
+    to both the original dataset and the unscaled X matrix, and returns the model.
+
+    Parameters:
+    X_scaled: The scaled feature matrix used for training.
+    dataset: The original complete dataset.
+    X: The unscaled feature matrix.
+    k: The number of clusters to use (default is 8).
+    
+    Returns:
+    agglomerative_model: The trained hierarchical object.
+    """
+
+    agglomerative = AgglomerativeClustering(linkage='ward', n_clusters=k)
+    labels = agglomerative.fit_predict(X_scaled)
+    
+ 
+    dataset['cluster_agglomerative_perc'] = labels
+    X['cluster_agglomerative_perc'] = labels
+    X_scaled['cluster_agglomerative_perc'] = labels
+ 
+    print(f"Customer Distribution for K={k}:")
+    print(dataset["cluster_agglomerative_perc"].value_counts().sort_index())
+    
+    return agglomerative
+
+def apply_kmeans_lifetime(X_scaled, dataset, X, k):
     """
     Fits a K-Means model to the scaled data, appends the cluster labels 
     to both the original dataset and the unscaled X matrix, and returns the model.
@@ -127,6 +177,34 @@ def apply_kmeans_lifetime(X_scaled, dataset, X, k=8):
     print(dataset["cluster_kmeans_lifetime"].value_counts().sort_index())
     
     return kmeans
+
+def apply_hierarchical_lifetime(X_scaled, dataset, X, k):
+    """
+    Fits a hierarchical model to the scaled data, appends the cluster labels 
+    to both the original dataset and the unscaled X matrix, and returns the model.
+
+    Parameters:
+    X_scaled: The scaled feature matrix used for training.
+    dataset: The original complete dataset.
+    X: The unscaled feature matrix.
+    k: The number of clusters to use (default is 8).
+    
+    Returns:
+    kmeans_model: The trained hierarchical object.
+    """
+
+    agglomerative = AgglomerativeClustering(n_clusters=k, linkage='ward')
+    labels = agglomerative.fit_predict(X_scaled)
+    
+ 
+    dataset['cluster_agglomerative_lifetime'] = labels
+    X['cluster_agglomerative_lifetime'] = labels
+    X_scaled['cluster_agglomerative_lifetime'] = labels
+ 
+    print(f"Customer Distribution for K={k}:")
+    print(dataset["cluster_agglomerative_lifetime"].value_counts().sort_index())
+    
+    return agglomerative
 
 def cluster_groupby(X, cluster_kmeans, method):
 
