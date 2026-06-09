@@ -219,8 +219,8 @@ function renderTotalSpendChart(spending) {
     chartTotalSpendInstance.destroy();
   }
 
-  const hist = isTotalSpendLog && spending.total_spend_log_histogram 
-    ? spending.total_spend_log_histogram 
+  const hist = isTotalSpendLog && spending.total_spend_log_histogram
+    ? spending.total_spend_log_histogram
     : spending.total_spend_histogram;
 
   const edges = hist.bin_edges;
@@ -256,14 +256,14 @@ function renderTotalSpendChart(spending) {
 
 function renderChildrenChart(demographics) {
   const ctx = document.getElementById('chart-children');
-  
+
   if (!ctx) return;
-  
+
   let dataKeys, dataValues, chartType;
 
   if (demographics?.total_children) {
     let groups = { "No Children": 0, "1-2 Children": 0, "3-4 Children": 0, "5+ Children": 0 };
-    
+
     Object.entries(demographics.total_children).forEach(([k, v]) => {
       let num = parseInt(k);
       if (num === 0) groups["No Children"] += v;
@@ -274,7 +274,7 @@ function renderChildrenChart(demographics) {
 
     dataKeys = Object.keys(groups);
     dataValues = Object.values(groups);
-    
+
     new Chart(ctx, {
       type: 'doughnut',
       data: {
@@ -282,9 +282,9 @@ function renderChildrenChart(demographics) {
         datasets: [{
           data: dataValues,
           backgroundColor: [
-            alpha(CHART_COLORS[0], 0.8), 
-            alpha(CHART_COLORS[1], 0.8), 
-            alpha(CHART_COLORS[2], 0.8), 
+            alpha(CHART_COLORS[0], 0.8),
+            alpha(CHART_COLORS[1], 0.8),
+            alpha(CHART_COLORS[2], 0.8),
             alpha(CHART_COLORS[3], 0.8)
           ],
           borderWidth: 0,
@@ -292,7 +292,7 @@ function renderChildrenChart(demographics) {
       },
       options: {
         responsive: true,
-        plugins: { 
+        plugins: {
           legend: { position: 'right', labels: { padding: 12, font: { size: 10 } } }
         }
       }
@@ -300,7 +300,7 @@ function renderChildrenChart(demographics) {
   } else if (demographics?.has_children) {
     dataKeys = Object.keys(demographics.has_children);
     dataValues = Object.values(demographics.has_children);
-    
+
     new Chart(ctx, {
       type: 'doughnut',
       data: {
@@ -363,8 +363,8 @@ function renderBasketChart(basket) {
     chartBasketInstance.destroy();
   }
 
-  const hist = isBasketLog && basket.trips_log_histogram 
-    ? basket.trips_log_histogram 
+  const hist = isBasketLog && basket.trips_log_histogram
+    ? basket.trips_log_histogram
     : basket.trips_histogram;
 
   const edges = hist.bin_edges;
@@ -421,7 +421,7 @@ function renderTimeChart(demographics) {
     options: {
       responsive: true,
       cutout: '50%',
-      plugins: { 
+      plugins: {
         legend: { position: 'right', labels: { padding: 12, font: { size: 10 } } }
       }
     }
@@ -469,7 +469,7 @@ function renderCorrelationChart(correlation) {
   // Draw cells
   for (const { x, y, v } of data) {
     if (x > y) continue; // Cut the upper triangle
-    
+
     const val = v;
     let r, g, b;
     if (val > 0) {
@@ -528,7 +528,7 @@ let mapMarkers = [];
 function renderGeography(geography, clustersData) {
   const mapContainer = document.getElementById('customer-map');
   const filterSelect = document.getElementById('map-cluster-filter');
-  
+
   if (!mapContainer || !geography || !geography.points) return;
 
   if (!globalMap) {
@@ -558,13 +558,13 @@ function renderGeography(geography, clustersData) {
 
   // Populate Filter Dropdown if we have clustersData
   if (filterSelect && clustersData && filterSelect.options.length <= 1) {
-    Object.values(clustersData).sort((a,b) => a.id - b.id).forEach(c => {
+    Object.values(clustersData).sort((a, b) => a.id - b.id).forEach(c => {
       const opt = document.createElement('option');
       opt.value = c.id;
       opt.textContent = c.name;
       filterSelect.appendChild(opt);
     });
-    
+
     const updateMap = () => {
       const selectedId = filterSelect.value;
       const sampleCount = sampleSlider ? parseInt(sampleSlider.value) : geography.points.length;
@@ -586,7 +586,7 @@ function updateMapMarkers(points, filterClusterId, clustersData = null, sampleCo
   // Remove existing
   mapMarkers.forEach(m => globalMap.removeLayer(m));
   mapMarkers = [];
-  
+
   // Update map insight text
   const insightDiv = document.getElementById('map-insight');
   if (insightDiv) {
@@ -595,7 +595,7 @@ function updateMapMarkers(points, filterClusterId, clustersData = null, sampleCo
       const cData = Object.values(clustersData).find(c => c.id == filterClusterId);
       if (cData) clusterName = cData.name;
     }
-    
+
     let insightHtml = '';
     if (filterClusterId === 'all') {
       insightHtml = '<strong>Global Distribution:</strong> Customers are widely distributed across the map, showing our global footprint.';
@@ -604,7 +604,7 @@ function updateMapMarkers(points, filterClusterId, clustersData = null, sampleCo
     } else {
       insightHtml = `<strong>${clusterName}:</strong> This segment shows a distinct geographical distribution compared to the global average. (Update this text with real insights in main.js)`;
     }
-    
+
     insightDiv.innerHTML = `<p style="font-size: 1.1rem; color: var(--text-primary); transition: var(--transition-base);">${insightHtml}</p>`;
   }
 
@@ -622,7 +622,7 @@ function updateMapMarkers(points, filterClusterId, clustersData = null, sampleCo
 
   filteredPoints.forEach(point => {
     const color = point.cluster !== undefined ? palette[point.cluster % palette.length] : COLORS.purple;
-    
+
     const marker = L.circleMarker([point.lat, point.lng], {
       radius: filterClusterId === 'all' ? 4 : 5, // make them slightly bigger if filtered
       fillColor: color,
@@ -781,7 +781,7 @@ function initTabs() {
       const content = document.getElementById(`content-${tabId}`);
       if (content) {
         content.classList.add('active');
-        
+
         // Trigger resize on charts and map to ensure they render correctly
         setTimeout(() => {
           window.dispatchEvent(new Event('resize'));
