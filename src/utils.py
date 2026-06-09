@@ -1,9 +1,7 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.cluster import KMeans, AgglomerativeClustering
 from scipy.cluster.hierarchy import dendrogram, linkage
-from sklearn.metrics import silhouette_score, silhouette_samples
 from sklearn.preprocessing import StandardScaler, RobustScaler
 from matplotlib.lines import Line2D 
 
