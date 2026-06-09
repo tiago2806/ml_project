@@ -9,6 +9,18 @@ from mlxtend.frequent_patterns import association_rules
 
 
 def generate_rules(cluster, min_support=0.02, min_confidence=0.15):
+    """
+    Generates association rules for a specific customer cluster using the Apriori algorithm.
+    
+    Parameters:
+    cluster: The subset of transactions belonging to a specific cluster.
+    min_support (float): Minimum support threshold (default: 2%).
+    min_confidence (float): Minimum confidence threshold (default: 15%).
+    
+    Returns:
+    transactions_matrix, itemsets, rules
+    """
+
     train_cluster_basket = list(cluster['list_of_goods'])
 
     te = TransactionEncoder()
