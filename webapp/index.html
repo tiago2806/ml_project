@@ -29,7 +29,7 @@
   <nav id="main-nav" class="nav">
     <div class="nav-brand">
       <span class="nav-logo">&#9670;</span>
-      <span class="nav-title">SegmentIQ</span>
+      <span class="nav-title">Customer Segmentation</span>
     </div>
     <ul class="nav-links">
       <li><a href="#hero" class="nav-link active" data-section="hero">Home</a></li>
@@ -51,7 +51,7 @@
       </h1>
       <p class="hero-subtitle">
         A data-driven deep dive into a 33,000+ customer retail dataset. We applied advanced K-Means clustering and
-        basket analysis to uncover 8 distinct shopper personas, optimizing future targeted marketing strategies.
+        basket analysis to uncover 8 distinct shopper clusters, optimizing future targeted marketing strategies.
       </p>
       <div class="hero-stats" id="hero-stats"></div>
       <a href="#eda" class="hero-cta">
@@ -65,7 +65,7 @@
   </section>
 
   <!-- EDA Section -->
-  <section id="eda" class="section">
+  <section id="eda" class="section" style="padding-bottom: 40px;">
     <div class="section-container">
       <div class="section-header">
         <span class="section-tag">01</span>
@@ -105,6 +105,115 @@
           </div>
         </div>
       </div>
+
+      <!-- Notebook EDA Section -->
+      <div class="notebook-eda-section" style="margin-top: 60px; margin-bottom: 80px;">
+        <div class="section-header" style="text-align: center; margin-bottom: 40px;">
+          <h3 class="section-title" style="font-size: 1.8rem; margin-bottom: 12px; color: var(--text-primary);">Notebook Exploratory Data Analysis</h3>
+          <p class="section-subtitle" style="max-width: 800px; margin: 0 auto;">Key visualizations extracted directly from our Jupyter notebooks, providing deeper insights into customer behavior and dataset characteristics.</p>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 32px;">
+          
+          <div class="card" style="overflow: hidden; display: flex; flex-direction: column; height: 100%; box-shadow: var(--shadow-md);">
+            <div class="card-header" style="background: var(--bg-card); border-bottom: 1px solid var(--border);">
+              <h3 class="card-title">1. Missing Values Analysis</h3>
+            </div>
+            <div class="card-body" style="padding: 24px; background: #f4f4f8; text-align: center; display: flex; align-items: center; justify-content: center; flex: 1;">
+              <img src="/eda_images/eda_plot_00.png" alt="Missing Values Analysis" style="max-width: 100%; max-height: 380px; object-fit: contain; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+            </div>
+            <div class="card-footer" style="padding: 20px; background: var(--bg-card); border-top: 1px solid var(--border);">
+              <p style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6; margin: 0;"><strong>Insight:</strong> A clear view of dataset completeness. Most demographic fields are well-populated, validating the integrity of the data prior to heavy preprocessing.</p>
+            </div>
+          </div>
+          
+          <div class="card" style="overflow: hidden; display: flex; flex-direction: column; height: 100%; box-shadow: var(--shadow-md);">
+            <div class="card-header" style="background: var(--bg-card); border-bottom: 1px solid var(--border);">
+              <h3 class="card-title">2. Variables Distribution</h3>
+            </div>
+            <div class="card-body" style="padding: 24px; background: #f4f4f8; text-align: center; display: flex; align-items: center; justify-content: center; flex: 1;">
+              <img src="/eda_images/eda_plot_01.png" alt="Variables Distribution" style="max-width: 100%; max-height: 380px; object-fit: contain; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+            </div>
+            <div class="card-footer" style="padding: 20px; background: var(--bg-card); border-top: 1px solid var(--border);">
+              <p style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6; margin: 0;"><strong>Insight:</strong> Displays the balanced spread across features, highlighting normal distributions for Demographics (like Age) and distinct groupings for categorical variables.</p>
+            </div>
+          </div>
+
+          <div class="card" style="overflow: hidden; display: flex; flex-direction: column; height: 100%; box-shadow: var(--shadow-md);">
+            <div class="card-header" style="background: var(--bg-card); border-bottom: 1px solid var(--border);">
+              <h3 class="card-title">3. Gender Distribution</h3>
+            </div>
+            <div class="card-body" style="padding: 24px; background: #f4f4f8; text-align: center; display: flex; align-items: center; justify-content: center; flex: 1;">
+              <img src="/eda_images/eda_plot_02.png" alt="Feature Distributions and Skewness" style="max-width: 100%; max-height: 380px; object-fit: contain; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+            </div>
+            <div class="card-footer" style="padding: 20px; background: var(--bg-card); border-top: 1px solid var(--border);">
+              <p style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6; margin: 0;"><strong>Insight:</strong> Demonstrates heavy right-skew in spending categories. A small percentage of "whale" customers account for a disproportionately large amount of revenue.</p>
+            </div>
+          </div>
+
+          <div class="card" style="overflow: hidden; display: flex; flex-direction: column; height: 100%; box-shadow: var(--shadow-md);">
+            <div class="card-header" style="background: var(--bg-card); border-bottom: 1px solid var(--border);">
+              <h3 class="card-title">4. Correlation Heat Map</h3>
+            </div>
+            <div class="card-body" style="padding: 24px; background: #f4f4f8; text-align: center; display: flex; align-items: center; justify-content: center; flex: 1;">
+              <img src="/eda_images/eda_plot_03.png" alt="Correlation Heat Map" style="max-width: 100%; max-height: 380px; object-fit: contain; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+            </div>
+            <div class="card-footer" style="padding: 20px; background: var(--bg-card); border-top: 1px solid var(--border);">
+              <p style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6; margin: 0;"><strong>Insight:</strong> Reveals strong positive correlations between specific product categories (e.g., Meat & Fish), leading us to merge them to avoid multicollinearity in models.</p>
+            </div>
+          </div>
+
+          <div class="card" style="overflow: hidden; display: flex; flex-direction: column; height: 100%; box-shadow: var(--shadow-md);">
+            <div class="card-header" style="background: var(--bg-card); border-bottom: 1px solid var(--border);">
+              <h3 class="card-title">5. Geo Analysis</h3>
+            </div>
+            <div class="card-body" style="padding: 24px; background: #f4f4f8; text-align: center; display: flex; align-items: center; justify-content: center; flex: 1;">
+              <img src="/eda_images/eda_plot_04.png" alt="Customer Map" style="max-width: 100%; max-height: 380px; object-fit: contain; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+            </div>
+            <div class="card-footer" style="padding: 20px; background: var(--bg-card); border-top: 1px solid var(--border);">
+              <p style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6; margin: 0;"><strong>Insight:</strong> Shows the geographic concentration of our customer base, primarily clustered around major metropolitan and university areas.</p>
+            </div>
+          </div>
+
+          <div class="card" style="overflow: hidden; display: flex; flex-direction: column; height: 100%; box-shadow: var(--shadow-md);">
+            <div class="card-header" style="background: var(--bg-card); border-bottom: 1px solid var(--border);">
+              <h3 class="card-title">6. Geo Cluster Found</h3>
+            </div>
+            <div class="card-body" style="padding: 24px; background: #f4f4f8; text-align: center; display: flex; align-items: center; justify-content: center; flex: 1;">
+              <img src="/eda_images/eda_plot_05.png" alt="Density Plot" style="max-width: 100%; max-height: 380px; object-fit: contain; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+            </div>
+            <div class="card-footer" style="padding: 20px; background: var(--bg-card); border-top: 1px solid var(--border);">
+              <p style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6; margin: 0;"><strong>Insight:</strong> Provides a smoothed representation of purchasing frequency, identifying peak engagement zones across our user base.</p>
+            </div>
+          </div>
+
+          <div class="card" style="overflow: hidden; display: flex; flex-direction: column; height: 100%; box-shadow: var(--shadow-md);">
+            <div class="card-header" style="background: var(--bg-card); border-bottom: 1px solid var(--border);">
+              <h3 class="card-title">7. Basket Size Histogram</h3>
+            </div>
+            <div class="card-body" style="padding: 24px; background: #f4f4f8; text-align: center; display: flex; align-items: center; justify-content: center; flex: 1;">
+              <img src="/eda_images/eda_plot_07.png" alt="Basket Size Histogram" style="max-width: 100%; max-height: 380px; object-fit: contain; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+            </div>
+            <div class="card-footer" style="padding: 20px; background: var(--bg-card); border-top: 1px solid var(--border);">
+              <p style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6; margin: 0;"><strong>Insight:</strong> Illustrates that the majority of shopping trips are small-to-medium baskets, while bulk-buying 'stock up' trips are less frequent.</p>
+            </div>
+          </div>
+
+          <div class="card" style="overflow: hidden; display: flex; flex-direction: column; height: 100%; box-shadow: var(--shadow-md);">
+            <div class="card-header" style="background: var(--bg-card); border-bottom: 1px solid var(--border);">
+              <h3 class="card-title">8. Item Co-occurrence Heat Map</h3>
+            </div>
+            <div class="card-body" style="padding: 32px; background: #f4f4f8; text-align: center; display: flex; align-items: center; justify-content: center; flex: 1;">
+              <img src="/eda_images/eda_plot_08.png" alt="Additional Basket Analysis" style="max-width: 100%; max-height: 500px; object-fit: contain; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+            </div>
+            <div class="card-footer" style="padding: 24px; background: var(--bg-card); border-top: 1px solid var(--border); text-align: center;">
+              <p style="font-size: 1rem; color: var(--text-secondary); line-height: 1.6; margin: 0; max-width: 800px; margin: 0 auto;"><strong>Insight:</strong> Highlights the diversity of unique products purchased, indicating strong cross-category shopping behavior among our most loyal segments. This proves crucial for product-bundling strategies.</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
 
       <div class="insight-tabs fade-in">
         <div class="insight-tab active" data-tab="demographics">
@@ -195,7 +304,7 @@
               Groceries and electronics dominate the spending categories.</p>
           </div>
 
-          <div class="card-grid card-grid-2">
+          <div class="card-grid">
             <div class="card" id="card-spending">
               <div class="card-header">
                 <h3 class="card-title">Average Spending by Category</h3>
@@ -216,9 +325,7 @@
                 </div>
               </div>
             </div>
-          </div>
 
-          <div class="card-grid card-grid-single">
             <div class="card" id="card-total-spend">
               <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
                 <h3 class="card-title">Total Spend Distribution</h3>
@@ -307,7 +414,7 @@
   </section>
 
   <!-- Geography Section -->
-  <section id="geography" class="section section-dark">
+  <section id="geography" class="section section-dark" style="padding-top: 40px;">
     <div class="section-container">
       <div class="section-header">
         <span class="section-tag">02</span>
@@ -330,7 +437,7 @@
                   style="accent-color: var(--accent-primary);">
               </div>
               <select id="map-cluster-filter" class="map-select">
-                <option value="all">All Personas</option>
+                <option value="all">All Clusters</option>
               </select>
             </div>
           </div>
@@ -340,11 +447,7 @@
           </div>
         </div>
 
-        <div id="map-insight" class="insight-explanation"
-          style="margin-top: 20px; background: var(--bg-card); padding: 24px; border-radius: 12px; border: 1px solid var(--border); text-align: center;">
-          <p style="font-size: 1.1rem; color: var(--text-primary);"><strong>Global Distribution:</strong> Customers are
-            widely distributed across the map, showing our global reach.</p>
-        </div>
+
       </div>
     </div>
   </section>
@@ -359,7 +462,7 @@
       </div>
 
       <!-- Feature Engineering Report Text -->
-      <div class="report-block fade-in" style="background: transparent; border: none; padding: 0;">
+      <div class="report-block" style="background: transparent; border: none; padding: 0; opacity: 1; visibility: visible;">
         <div style="text-align: center; margin-bottom: 32px;">
           <h3 class="report-subtitle" style="display: inline-block; border-bottom: 2px solid var(--accent-primary);">
             Feature Engineering Highlights</h3>
@@ -369,7 +472,7 @@
         </div>
 
         <div class="feature-grid"
-          style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 48px;">
+          style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 48px;">
           <div class="feature-card"
             style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; transition: var(--transition-base); text-align: center;">
             <div style="font-size: 2.5rem; margin-bottom: 16px;">🎓</div>
@@ -378,13 +481,7 @@
               Set to 'Unknown' when missing.</p>
           </div>
 
-          <div class="feature-card"
-            style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; transition: var(--transition-base); text-align: center;">
-            <div style="font-size: 2.5rem; margin-bottom: 16px;">👨‍👩‍👧‍👦</div>
-            <h4 style="color: var(--accent-secondary); margin-bottom: 8px;">Family Structure</h4>
-            <p style="font-size: 0.9rem; color: var(--text-secondary);">Aggregated kids and teens at home into unified
-              children features.</p>
-          </div>
+
 
           <div class="feature-card"
             style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; transition: var(--transition-base); text-align: center;">
@@ -423,13 +520,13 @@
         <div class="insight-instructions"
           style="text-align: center; margin-bottom: 24px; padding: 16px; background: rgba(108, 92, 231, 0.1); border: 1px dashed var(--accent-primary); border-radius: 12px; color: var(--text-primary); font-weight: 500;">
           <span style="font-size: 1.2rem; margin-right: 8px;">🎭</span>
-          <strong>Select a Customer Persona</strong> to view their unique profile and statistics!
+          <strong>Select a Customer Cluster</strong> to view their unique profile and statistics!
         </div>
 
         <div class="persona-selector-container" style="text-align: center; margin-bottom: 30px;">
           <select id="persona-select" class="persona-select"
             style="padding: 12px 24px; font-size: 1.2rem; font-family: var(--font-main); border: 2px solid var(--accent-primary); border-radius: 8px; background: var(--bg-card); color: var(--text-primary); cursor: pointer; outline: none; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; max-width: 400px;">
-            <option value="" disabled selected>Loading Personas...</option>
+            <option value="" disabled selected>Loading Clusters...</option>
           </select>
         </div>
 
@@ -451,10 +548,25 @@
             </div>
             <div class="feature-card"
               style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center;">
-              <h4 style="color: var(--text-secondary); margin-bottom: 8px; font-size: 0.9rem;">Avg Tenure</h4>
-              <div id="cluster-tenure" style="font-size: 2rem; font-weight: 700; color: var(--accent-tertiary);">--
+              <h4 style="color: var(--text-secondary); margin-bottom: 8px; font-size: 0.9rem;">Avg Complaints</h4>
+              <div id="cluster-complaints" style="font-size: 2rem; font-weight: 700; color: var(--accent-tertiary);">--
               </div>
-              <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">Years</p>
+              <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">Per Customer</p>
+            </div>
+
+            <div class="feature-card"
+              style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center;">
+              <h4 style="color: var(--text-secondary); margin-bottom: 8px; font-size: 0.9rem;">Promo Seeking</h4>
+              <div id="cluster-promo" style="font-size: 2rem; font-weight: 700; color: var(--accent-secondary);">--
+              </div>
+              <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">Items on Sale</p>
+            </div>
+            <div class="feature-card"
+              style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center;">
+              <h4 style="color: var(--text-secondary); margin-bottom: 8px; font-size: 0.9rem;">Avg Children</h4>
+              <div id="cluster-children" style="font-size: 2rem; font-weight: 700; color: var(--accent-tertiary);">--
+              </div>
+              <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">Per Household</p>
             </div>
           </div>
 
@@ -492,82 +604,177 @@
             Notebooks.</p>
         </div>
 
-        <div class="card-grid">
-          <div class="card">
-            <div class="card-header">
-              <h3 class="card-title">Elbow Method</h3>
-            </div>
-            <div class="card-body"
-              style="padding: 0; background: var(--bg-secondary); border-radius: 0 0 12px 12px; overflow: hidden; display: flex; flex-direction: column;">
-              <img src="/output.png" alt="Elbow Method" style="width: 100%; height: auto; display: block;"
-                onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100%\' height=\'250\'><rect width=\'100%\' height=\'100%\' fill=\'%232a2a3c\'/><text x=\'50%\' y=\'50%\' font-family=\'sans-serif\' font-size=\'14\' fill=\'%23a0a0b8\' text-anchor=\'middle\' dominant-baseline=\'middle\'>Waiting for output.png</text></svg>';">
-              <div
-                style="padding: 16px; font-size: 0.9rem; color: var(--text-secondary); border-top: 1px solid var(--border); text-align: center;">
-                <strong>Insight:</strong> The "elbow" indicates the optimal number of clusters where the rate of
-                variance drop slows down. We identified 8 clusters as the sweet spot.
-              </div>
-            </div>
+        <div class="model-tabs" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 32px; max-width: 600px; margin-left: auto; margin-right: auto;">
+          <div class="model-tab active" data-modeltab="lifetime" style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; text-align: center; cursor: pointer; transition: var(--transition-base);">
+            <h4 style="margin: 0; font-size: 1.1rem; color: var(--text-primary);">Using Lifetime</h4>
           </div>
-          <div class="card">
-            <div class="card-header">
-              <h3 class="card-title">Silhouette Score</h3>
-            </div>
-            <div class="card-body"
-              style="padding: 0; background: var(--bg-secondary); border-radius: 0 0 12px 12px; overflow: hidden; display: flex; flex-direction: column;">
-              <img src="/silhouette.png" alt="Silhouette Score" style="width: 100%; height: auto; display: block;"
-                onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100%\' height=\'250\'><rect width=\'100%\' height=\'100%\' fill=\'%232a2a3c\'/><text x=\'50%\' y=\'50%\' font-family=\'sans-serif\' font-size=\'14\' fill=\'%23a0a0b8\' text-anchor=\'middle\' dominant-baseline=\'middle\'>Waiting for silhouette.png</text></svg>';">
-              <div
-                style="padding: 16px; font-size: 0.9rem; color: var(--text-secondary); border-top: 1px solid var(--border); text-align: center;">
-                <strong>Insight:</strong> Measures how similar an object is to its own cluster compared to others. A
-                higher score at k=8 confirms well-separated, distinct customer personas.
-              </div>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-header">
-              <h3 class="card-title">Hierarchical Dendrogram</h3>
-            </div>
-            <div class="card-body"
-              style="padding: 0; background: var(--bg-secondary); border-radius: 0 0 12px 12px; overflow: hidden; display: flex; flex-direction: column;">
-              <img src="/dendogram.png" alt="Dendrogram" style="width: 100%; height: auto; display: block;"
-                onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100%\' height=\'250\'><rect width=\'100%\' height=\'100%\' fill=\'%232a2a3c\'/><text x=\'50%\' y=\'50%\' font-family=\'sans-serif\' font-size=\'14\' fill=\'%23a0a0b8\' text-anchor=\'middle\' dominant-baseline=\'middle\'>Waiting for dendogram.png</text></svg>';">
-              <div
-                style="padding: 16px; font-size: 0.9rem; color: var(--text-secondary); border-top: 1px solid var(--border); text-align: center;">
-                <strong>Insight:</strong> Visualizes the arrangement of clusters produced by hierarchical clustering,
-                validating the major splits in customer behavior.
-              </div>
-            </div>
+          <div class="model-tab" data-modeltab="percentages" style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; text-align: center; cursor: pointer; transition: var(--transition-base);">
+            <h4 style="margin: 0; font-size: 1.1rem; color: var(--text-primary);">Using Percentages</h4>
           </div>
         </div>
 
-        <div class="card-grid card-grid-half">
-          <div class="card">
-            <div class="card-header">
-              <h3 class="card-title">UMAP Projection</h3>
+        <div class="model-content-container">
+          
+          <!-- USING LIFETIME -->
+          <div id="model-content-lifetime" class="model-content" style="display: block;">
+            <div class="card-grid">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">Elbow Method</h3>
+                </div>
+                <div class="card-body"
+                  style="padding: 0; background: var(--bg-secondary); border-radius: 0 0 12px 12px; overflow: hidden; display: flex; flex-direction: column;">
+                  <img src="/output_lifetime.png" alt="Elbow Method" style="width: 100%; height: auto; display: block;"
+                    onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100%\' height=\'250\'><rect width=\'100%\' height=\'100%\' fill=\'%232a2a3c\'/><text x=\'50%\' y=\'50%\' font-family=\'sans-serif\' font-size=\'14\' fill=\'%23a0a0b8\' text-anchor=\'middle\' dominant-baseline=\'middle\'>Waiting for output_lifetime.png</text></svg>';">
+                  <div
+                    style="padding: 16px; font-size: 0.9rem; color: var(--text-secondary); border-top: 1px solid var(--border); text-align: center;">
+                    <strong>Insight:</strong> The "elbow" indicates the optimal number of clusters where the rate of
+                    variance drop slows down. We identified 8 clusters as the sweet spot.
+                  </div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">Silhouette Score</h3>
+                </div>
+                <div class="card-body"
+                  style="padding: 0; background: var(--bg-secondary); border-radius: 0 0 12px 12px; overflow: hidden; display: flex; flex-direction: column;">
+                  <img src="/silhouette_lifetime.png" alt="Silhouette Score" style="width: 100%; height: auto; display: block;"
+                    onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100%\' height=\'250\'><rect width=\'100%\' height=\'100%\' fill=\'%232a2a3c\'/><text x=\'50%\' y=\'50%\' font-family=\'sans-serif\' font-size=\'14\' fill=\'%23a0a0b8\' text-anchor=\'middle\' dominant-baseline=\'middle\'>Waiting for silhouette_lifetime.png</text></svg>';">
+                  <div
+                    style="padding: 16px; font-size: 0.9rem; color: var(--text-secondary); border-top: 1px solid var(--border); text-align: center;">
+                    <strong>Insight:</strong> Measures how similar an object is to its own cluster compared to others. A
+                    higher score at k=8 confirms well-separated, distinct customer clusters.
+                  </div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">Hierarchical Dendrogram</h3>
+                </div>
+                <div class="card-body"
+                  style="padding: 0; background: var(--bg-secondary); border-radius: 0 0 12px 12px; overflow: hidden; display: flex; flex-direction: column;">
+                  <img src="/dendogram_lifetime.png" alt="Dendrogram" style="width: 100%; height: auto; display: block;"
+                    onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100%\' height=\'250\'><rect width=\'100%\' height=\'100%\' fill=\'%232a2a3c\'/><text x=\'50%\' y=\'50%\' font-family=\'sans-serif\' font-size=\'14\' fill=\'%23a0a0b8\' text-anchor=\'middle\' dominant-baseline=\'middle\'>Waiting for dendogram_lifetime.png</text></svg>';">
+                  <div
+                    style="padding: 16px; font-size: 0.9rem; color: var(--text-secondary); border-top: 1px solid var(--border); text-align: center;">
+                    <strong>Insight:</strong> Visualizes the arrangement of clusters produced by hierarchical clustering,
+                    validating the major splits in customer behavior.
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="card-body"
-              style="padding: 0; background: var(--bg-secondary); border-radius: 0 0 12px 12px; overflow: hidden; display: flex; flex-direction: column;">
-              <img src="/umap.png" alt="UMAP" style="width: 100%; height: auto; display: block;"
-                onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100%\' height=\'300\'><rect width=\'100%\' height=\'100%\' fill=\'%232a2a3c\'/><text x=\'50%\' y=\'50%\' font-family=\'sans-serif\' font-size=\'14\' fill=\'%23a0a0b8\' text-anchor=\'middle\' dominant-baseline=\'middle\'>Waiting for umap.png</text></svg>';">
-              <div
-                style="padding: 16px; font-size: 0.9rem; color: var(--text-secondary); border-top: 1px solid var(--border); text-align: center;">
-                <strong>Insight:</strong> UMAP excellently captures the non-linear, complex topology of our customer
-                base, clearly segregating the 8 distinct clusters while preserving both local and global structure.
+
+            <div class="card-grid card-grid-half">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">UMAP Projection</h3>
+                </div>
+                <div class="card-body"
+                  style="padding: 0; background: var(--bg-secondary); border-radius: 0 0 12px 12px; overflow: hidden; display: flex; flex-direction: column;">
+                  <img src="/umap_lifetime.png" alt="UMAP" style="width: 100%; height: auto; display: block;"
+                    onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100%\' height=\'300\'><rect width=\'100%\' height=\'100%\' fill=\'%232a2a3c\'/><text x=\'50%\' y=\'50%\' font-family=\'sans-serif\' font-size=\'14\' fill=\'%23a0a0b8\' text-anchor=\'middle\' dominant-baseline=\'middle\'>Waiting for umap_lifetime.png</text></svg>';">
+                  <div
+                    style="padding: 16px; font-size: 0.9rem; color: var(--text-secondary); border-top: 1px solid var(--border); text-align: center;">
+                    <strong>Insight:</strong> UMAP excellently captures the non-linear, complex topology of our customer
+                    base, clearly segregating the 8 distinct clusters while preserving both local and global structure.
+                  </div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">t-SNE Projection</h3>
+                </div>
+                <div class="card-body"
+                  style="padding: 0; background: var(--bg-secondary); border-radius: 0 0 12px 12px; overflow: hidden; display: flex; flex-direction: column;">
+                  <img src="/tsne_lifetime.png" alt="t-SNE" style="width: 100%; height: auto; display: block;"
+                    onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100%\' height=\'300\'><rect width=\'100%\' height=\'100%\' fill=\'%232a2a3c\'/><text x=\'50%\' y=\'50%\' font-family=\'sans-serif\' font-size=\'14\' fill=\'%23a0a0b8\' text-anchor=\'middle\' dominant-baseline=\'middle\'>Waiting for tsne_lifetime.png</text></svg>';">
+                  <div
+                    style="padding: 16px; font-size: 0.9rem; color: var(--text-secondary); border-top: 1px solid var(--border); text-align: center;">
+                    <strong>Insight:</strong> t-SNE expands dense regions to show fine-grained local variations. The solid
+                    color groupings reaffirm that our K-Means clusters represent genuinely distinct behavioral patterns.
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-          <div class="card">
-            <div class="card-header">
-              <h3 class="card-title">t-SNE Projection</h3>
+
+          <!-- USING PERCENTAGES -->
+          <div id="model-content-percentages" class="model-content" style="display: none;">
+            <div class="card-grid">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">Elbow Method</h3>
+                </div>
+                <div class="card-body"
+                  style="padding: 0; background: var(--bg-secondary); border-radius: 0 0 12px 12px; overflow: hidden; display: flex; flex-direction: column;">
+                  <img src="/output_percentages.png" alt="Elbow Method" style="width: 100%; height: auto; display: block;"
+                    onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100%\' height=\'250\'><rect width=\'100%\' height=\'100%\' fill=\'%232a2a3c\'/><text x=\'50%\' y=\'50%\' font-family=\'sans-serif\' font-size=\'14\' fill=\'%23a0a0b8\' text-anchor=\'middle\' dominant-baseline=\'middle\'>Waiting for output_percentages.png</text></svg>';">
+                  <div
+                    style="padding: 16px; font-size: 0.9rem; color: var(--text-secondary); border-top: 1px solid var(--border); text-align: center;">
+                    <strong>Insight:</strong> The "elbow" indicates the optimal number of clusters where the rate of
+                    variance drop slows down based on percentage-based features.
+                  </div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">Silhouette Score</h3>
+                </div>
+                <div class="card-body"
+                  style="padding: 0; background: var(--bg-secondary); border-radius: 0 0 12px 12px; overflow: hidden; display: flex; flex-direction: column;">
+                  <img src="/silhouette_percentages.png" alt="Silhouette Score" style="width: 100%; height: auto; display: block;"
+                    onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100%\' height=\'250\'><rect width=\'100%\' height=\'100%\' fill=\'%232a2a3c\'/><text x=\'50%\' y=\'50%\' font-family=\'sans-serif\' font-size=\'14\' fill=\'%23a0a0b8\' text-anchor=\'middle\' dominant-baseline=\'middle\'>Waiting for silhouette_percentages.png</text></svg>';">
+                  <div
+                    style="padding: 16px; font-size: 0.9rem; color: var(--text-secondary); border-top: 1px solid var(--border); text-align: center;">
+                    <strong>Insight:</strong> Measures how similar an object is to its own cluster compared to others using percentage features.
+                  </div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">Hierarchical Dendrogram</h3>
+                </div>
+                <div class="card-body"
+                  style="padding: 0; background: var(--bg-secondary); border-radius: 0 0 12px 12px; overflow: hidden; display: flex; flex-direction: column;">
+                  <img src="/dendogram_percentages.png" alt="Dendrogram" style="width: 100%; height: auto; display: block;"
+                    onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100%\' height=\'250\'><rect width=\'100%\' height=\'100%\' fill=\'%232a2a3c\'/><text x=\'50%\' y=\'50%\' font-family=\'sans-serif\' font-size=\'14\' fill=\'%23a0a0b8\' text-anchor=\'middle\' dominant-baseline=\'middle\'>Waiting for dendogram_percentages.png</text></svg>';">
+                  <div
+                    style="padding: 16px; font-size: 0.9rem; color: var(--text-secondary); border-top: 1px solid var(--border); text-align: center;">
+                    <strong>Insight:</strong> Visualizes the arrangement of clusters produced by hierarchical clustering on the percentages dataset.
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="card-body"
-              style="padding: 0; background: var(--bg-secondary); border-radius: 0 0 12px 12px; overflow: hidden; display: flex; flex-direction: column;">
-              <img src="/tsne.png" alt="t-SNE" style="width: 100%; height: auto; display: block;"
-                onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100%\' height=\'300\'><rect width=\'100%\' height=\'100%\' fill=\'%232a2a3c\'/><text x=\'50%\' y=\'50%\' font-family=\'sans-serif\' font-size=\'14\' fill=\'%23a0a0b8\' text-anchor=\'middle\' dominant-baseline=\'middle\'>Waiting for tsne.png</text></svg>';">
-              <div
-                style="padding: 16px; font-size: 0.9rem; color: var(--text-secondary); border-top: 1px solid var(--border); text-align: center;">
-                <strong>Insight:</strong> t-SNE expands dense regions to show fine-grained local variations. The solid
-                color groupings reaffirm that our K-Means clusters represent genuinely distinct behavioral patterns.
+
+            <div class="card-grid card-grid-half">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">UMAP Projection</h3>
+                </div>
+                <div class="card-body"
+                  style="padding: 0; background: var(--bg-secondary); border-radius: 0 0 12px 12px; overflow: hidden; display: flex; flex-direction: column;">
+                  <img src="/umap_percentages.png" alt="UMAP" style="width: 100%; height: auto; display: block;"
+                    onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100%\' height=\'300\'><rect width=\'100%\' height=\'100%\' fill=\'%232a2a3c\'/><text x=\'50%\' y=\'50%\' font-family=\'sans-serif\' font-size=\'14\' fill=\'%23a0a0b8\' text-anchor=\'middle\' dominant-baseline=\'middle\'>Waiting for umap_percentages.png</text></svg>';">
+                  <div
+                    style="padding: 16px; font-size: 0.9rem; color: var(--text-secondary); border-top: 1px solid var(--border); text-align: center;">
+                    <strong>Insight:</strong> UMAP projection showcasing cluster separation when modeling on percentage-based behavioral features.
+                  </div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">t-SNE Projection</h3>
+                </div>
+                <div class="card-body"
+                  style="padding: 0; background: var(--bg-secondary); border-radius: 0 0 12px 12px; overflow: hidden; display: flex; flex-direction: column;">
+                  <img src="/tsne_percentages.png" alt="t-SNE" style="width: 100%; height: auto; display: block;"
+                    onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100%\' height=\'300\'><rect width=\'100%\' height=\'100%\' fill=\'%232a2a3c\'/><text x=\'50%\' y=\'50%\' font-family=\'sans-serif\' font-size=\'14\' fill=\'%23a0a0b8\' text-anchor=\'middle\' dominant-baseline=\'middle\'>Waiting for tsne_percentages.png</text></svg>';">
+                  <div
+                    style="padding: 16px; font-size: 0.9rem; color: var(--text-secondary); border-top: 1px solid var(--border); text-align: center;">
+                    <strong>Insight:</strong> t-SNE expands dense regions to show fine-grained local variations among percentage-based clusters.
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -578,8 +785,8 @@
     <!-- What-If Simulator -->
     <div class="simulator-dashboard" style="margin-top: 60px; padding-top: 40px; border-top: 1px solid var(--border);">
       <div class="section-header" style="margin-bottom: 30px;">
-        <h3 class="section-title" style="font-size: 1.8rem;">Persona Simulator</h3>
-        <p class="section-subtitle">Adjust the sliders to see which Persona the hypothetical customer belongs to.</p>
+        <h3 class="section-title" style="font-size: 1.8rem;">Cluster Simulator</h3>
+        <p class="section-subtitle">Adjust the sliders to see which Cluster the hypothetical customer belongs to.</p>
       </div>
 
       <div class="card-grid card-grid-2" style="align-items: stretch;">
@@ -698,7 +905,7 @@
         <div class="card"
           style="display: flex; flex-direction: column; background: linear-gradient(145deg, var(--bg-card) 0%, rgba(108, 92, 231, 0.05) 100%);">
           <div class="card-header">
-            <h3 class="card-title">Predicted Persona</h3>
+            <h3 class="card-title">Predicted Cluster</h3>
           </div>
           <div class="card-body"
             style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 40px 20px;">
@@ -731,20 +938,142 @@
         <p class="section-subtitle">Data-driven campaign strategies for each customer segment</p>
       </div>
 
-      <div class="coming-soon-container">
-        <div class="coming-soon-icon">&#127919;</div>
-        <h3 class="coming-soon-title">Campaign Strategies Coming Soon</h3>
-        <p class="coming-soon-text">
-          This section will showcase targeted promotion strategies based on association rules
-          and cluster-specific insights from the customer basket data.
-        </p>
-        <div class="coming-soon-features">
-          <div class="feature-chip">Association Rules</div>
-          <div class="feature-chip">Basket Analysis</div>
-          <div class="feature-chip">Personalized Offers</div>
-          <div class="feature-chip">Cross-selling Strategy</div>
+      <div class="promo-carousel-container">
+        <button class="carousel-btn prev-btn">❮</button>
+        
+        <div class="carousel-track-container">
+          <ul class="carousel-track" id="promo-track">
+            
+            <li class="carousel-slide current-slide">
+              <div class="promo-card">
+                <div class="promo-icon">🎧</div>
+                <h3 class="promo-title">Cluster 0 — Regular Customers</h3>
+                <p class="promo-text">Buy AirPods or Bluetooth headphones and get energy drinks + mini tech accessories at 20% off.</p>
+                <span class="promo-tag">Cross-selling Bundle</span>
+              </div>
+            </li>
+            
+            <li class="carousel-slide">
+              <div class="promo-card">
+                <div class="promo-icon">🎮</div>
+                <h3 class="promo-title">Cluster 1 — Gamers</h3>
+                <p class="promo-text">Buy gaming accessories or iPhone gear and unlock exclusive discounts on energy drinks + late-night snack packs.</p>
+                <span class="promo-tag">Late-Night Deal</span>
+              </div>
+            </li>
+            
+            <li class="carousel-slide">
+              <div class="promo-card">
+                <div class="promo-icon">🥗</div>
+                <h3 class="promo-title">Cluster 2 — Clean & Green</h3>
+                <p class="promo-text">Weekly Wellness Box with protein bars, fresh vegetables (asparagus, etc.) and healthy essentials at a discounted price.</p>
+                <span class="promo-tag">Subscription Box</span>
+              </div>
+            </li>
+            
+            <li class="carousel-slide">
+              <div class="promo-card">
+                <div class="promo-icon">🍞</div>
+                <h3 class="promo-title">Cluster 3 — Senior Karens</h3>
+                <p class="promo-text">Buy cereals and receive exclusive discounts on eggs, butter and fresh bread every week.</p>
+                <span class="promo-tag">Weekly Staples</span>
+              </div>
+            </li>
+            
+            <li class="carousel-slide">
+              <div class="promo-card">
+                <div class="promo-icon">🔥</div>
+                <h3 class="promo-title">Cluster 4 — Promotion Lovers</h3>
+                <p class="promo-text">"Your favorites this week — AirPods, headphones & energy drinks at up to 40% off". App notifications: "Flash deal ends in 2 hours"</p>
+                <span class="promo-tag">Flash Deals</span>
+              </div>
+            </li>
+            
+            <li class="carousel-slide">
+              <div class="promo-card">
+                <div class="promo-icon">🍼</div>
+                <h3 class="promo-title">Cluster 5 — Low-Value Occasional</h3>
+                <p class="promo-text">Get 30% off essential bundles (baby, pet, kitchen items) on your next visit.</p>
+                <span class="promo-tag">Retention Offer</span>
+              </div>
+            </li>
+            
+            <li class="carousel-slide">
+              <div class="promo-card">
+                <div class="promo-icon">⭐</div>
+                <h3 class="promo-title">Cluster 6 — High-Value Customers</h3>
+                <p class="promo-text">Earn double loyalty points on grocery staples like cereals and butter + exclusive premium discounts.</p>
+                <span class="promo-tag">Loyalty Reward</span>
+              </div>
+            </li>
+            
+            <li class="carousel-slide">
+              <div class="promo-card">
+                <div class="promo-icon">🛒</div>
+                <h3 class="promo-title">Cluster 7 — Large Families</h3>
+                <p class="promo-text">Buy essential breakfast + household items and get up to 30% off bulk purchases. "Weekly Family Box" (milk, eggs, bread, cereals).</p>
+                <span class="promo-tag">Bulk Discount</span>
+              </div>
+            </li>
+            
+            <li class="carousel-slide">
+              <div class="promo-card">
+                <div class="promo-icon">🍱</div>
+                <h3 class="promo-title">Cluster 8 — Young Karens</h3>
+                <p class="promo-text">Bundle discounts on vegetables + ready-to-eat healthy meals.</p>
+                <span class="promo-tag">Convenience Bundle</span>
+              </div>
+            </li>
+            
+          </ul>
+        </div>
+        
+        <button class="carousel-btn next-btn">❯</button>
+        
+        <div class="carousel-nav" id="promo-nav">
+          <button class="carousel-indicator current-indicator"></button>
+          <button class="carousel-indicator"></button>
+          <button class="carousel-indicator"></button>
+          <button class="carousel-indicator"></button>
+          <button class="carousel-indicator"></button>
+          <button class="carousel-indicator"></button>
+          <button class="carousel-indicator"></button>
+          <button class="carousel-indicator"></button>
+          <button class="carousel-indicator"></button>
         </div>
       </div>
+      
+      <!-- Store Suggestions -->
+      <div style="margin-top: 60px; padding-top: 40px; border-top: 1px solid var(--border);">
+        <h3 class="section-title" style="font-size: 1.8rem; text-align: center; margin-bottom: 30px;">Strategic Store Suggestions</h3>
+        
+        <div class="feature-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px;">
+          <div class="feature-card" style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px;">
+            <div style="font-size: 2rem; margin-bottom: 12px;">⚡</div>
+            <h4 style="color: var(--accent-secondary); margin-bottom: 8px;">Cross-Selling Hotspots</h4>
+            <p style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.5;">Place <strong>Energy drinks next to tech accessories</strong> and position small gadgets directly near the checkout line.</p>
+          </div>
+
+          <div class="feature-card" style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px;">
+            <div style="font-size: 2rem; margin-bottom: 12px;">🕹️</div>
+            <h4 style="color: var(--accent-secondary); margin-bottom: 8px;">Dedicated "Gaming Zone"</h4>
+            <p style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.5;">Create a high-impact area grouping <strong>Headphones, Phone accessories, Energy drinks and Snacks</strong> to capture the Gamer cluster.</p>
+          </div>
+
+          <div class="feature-card" style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px;">
+            <div style="font-size: 2rem; margin-bottom: 12px;">🥑</div>
+            <h4 style="color: var(--accent-secondary); margin-bottom: 8px;">Premium "Healthy Shelf"</h4>
+            <p style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.5;">Build a dedicated section combining <strong>Vegetables, Protein bars and Healthy snacks</strong> to attract the Clean & Green segment.</p>
+          </div>
+
+          <div class="feature-card" style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px;">
+            <div style="font-size: 2rem; margin-bottom: 12px;">📢</div>
+            <h4 style="color: var(--accent-secondary); margin-bottom: 8px;">Visibility & Activation</h4>
+            <p style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.5;">Utilize <strong>end-of-aisle displays</strong>, Entrance promotions, Digital screens, and App notifications for high-visibility promo zones.</p>
+          </div>
+        </div>
+      </div>
+
     </div>
   </section>
 
@@ -756,30 +1085,6 @@
     </div>
   </footer>
 
-  <div class="no-print" style="position: fixed; bottom: 30px; right: 30px; z-index: 1000;">
-    <button id="btn-export-pdf"
-      style="background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); color: white; border: none; padding: 14px 28px; border-radius: 30px; font-weight: 700; font-size: 1rem; cursor: pointer; box-shadow: 0 8px 24px rgba(108, 92, 231, 0.4); display: flex; align-items: center; gap: 10px; transition: var(--transition-base);">
-      <span>📄</span> Export Report
-    </button>
-  </div>
-
   <script type="module" src="/src/main.js"></script>
 </body>
-
-</html>
-</div>
-</footer>
-
-<div class="no-print" style="position: fixed; bottom: 30px; right: 30px; z-index: 1000;">
-  <button id="btn-export-pdf"
-    style="background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); color: white; border: none; padding: 14px 28px; border-radius: 30px; font-weight: 700; font-size: 1rem; cursor: pointer; box-shadow: 0 8px 24px rgba(108, 92, 231, 0.4); display: flex; align-items: center; gap: 10px; transition: var(--transition-base);">
-    <span>📄</span> Export Report
-  </button>
-</div>
-
-<script type="module" src="/src/main.js"></script>
-</body>
-
-</html>
-
 </html>

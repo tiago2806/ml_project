@@ -1,6 +1,6 @@
 {
   "total_customers": 33038,
-  "total_features": 38,
+  "total_features": 39,
   "columns": [
     "customer_name",
     "customer_gender",
@@ -8,9 +8,7 @@
     "education_level",
     "kids_home",
     "teens_home",
-    "total_children",
     "year_first_transaction",
-    "years_tenure",
     "distinct_stores_visited",
     "number_complaints",
     "typical_hour",
@@ -39,7 +37,10 @@
     "perc_spend_hygiene",
     "latitude",
     "longitude",
-    "is_customer_outlier"
+    "is_customer_outlier",
+    "cluster_kmeans",
+    "cluster_name",
+    "total_children"
   ],
   "dtypes": {
     "customer_name": "object",
@@ -48,9 +49,7 @@
     "education_level": "object",
     "kids_home": "int64",
     "teens_home": "int64",
-    "total_children": "int64",
     "year_first_transaction": "int64",
-    "years_tenure": "int64",
     "distinct_stores_visited": "int64",
     "number_complaints": "int64",
     "typical_hour": "int64",
@@ -79,13 +78,16 @@
     "perc_spend_hygiene": "float64",
     "latitude": "float64",
     "longitude": "float64",
-    "is_customer_outlier": "int64"
+    "is_customer_outlier": "int64",
+    "cluster_kmeans": "int64",
+    "cluster_name": "object",
+    "total_children": "int64"
   },
   "numeric_stats": {
     "customer_age": {
       "mean": 55.1,
       "median": 55.0,
-      "std": 18.03,
+      "std": 18.04,
       "min": 24.0,
       "max": 86.0
     },
@@ -103,26 +105,12 @@
       "min": 0.0,
       "max": 6.0
     },
-    "total_children": {
-      "mean": 2.02,
-      "median": 2.0,
-      "std": 1.78,
-      "min": 0.0,
-      "max": 14.0
-    },
     "year_first_transaction": {
       "mean": 2015.06,
       "median": 2015.0,
       "std": 4.59,
       "min": 1993.0,
       "max": 2026.0
-    },
-    "years_tenure": {
-      "mean": 10.94,
-      "median": 11.0,
-      "std": 4.59,
-      "min": 0.0,
-      "max": 33.0
     },
     "distinct_stores_visited": {
       "mean": 3.17,
@@ -319,6 +307,20 @@
       "std": 0.03,
       "min": 0.0,
       "max": 1.0
+    },
+    "cluster_kmeans": {
+      "mean": 3.45,
+      "median": 4.0,
+      "std": 2.65,
+      "min": 0.0,
+      "max": 8.0
+    },
+    "total_children": {
+      "mean": 2.02,
+      "median": 2.0,
+      "std": 1.78,
+      "min": 0.0,
+      "max": 14.0
     }
   }
 }

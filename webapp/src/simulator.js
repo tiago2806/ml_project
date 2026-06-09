@@ -76,8 +76,8 @@ function predictPersona() {
   // 2. Standardize inputs (Z-score = (x - mean) / std)
   const standardizedInput = {};
   Object.entries(inputValues).forEach(([feature, val]) => {
-    const mean = globalStats[feature].mean;
-    const std = globalStats[feature].std;
+    const mean = globalStats[feature] ? globalStats[feature].mean : 0;
+    const std = globalStats[feature] ? globalStats[feature].std : 1;
     standardizedInput[feature] = std > 0 ? (val - mean) / std : 0;
   });
 

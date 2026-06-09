@@ -7,7 +7,7 @@
   },
   "clean": {
     "rows": 33038,
-    "columns": 38,
+    "columns": 36,
     "missing_values": 0,
     "duplicates": 0
   },

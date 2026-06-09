@@ -587,26 +587,7 @@ function updateMapMarkers(points, filterClusterId, clustersData = null, sampleCo
   mapMarkers.forEach(m => globalMap.removeLayer(m));
   mapMarkers = [];
 
-  // Update map insight text
-  const insightDiv = document.getElementById('map-insight');
-  if (insightDiv) {
-    let clusterName = "Selected Cluster";
-    if (clustersData && filterClusterId !== 'all') {
-      const cData = Object.values(clustersData).find(c => c.id == filterClusterId);
-      if (cData) clusterName = cData.name;
-    }
 
-    let insightHtml = '';
-    if (filterClusterId === 'all') {
-      insightHtml = '<strong>Global Distribution:</strong> Customers are widely distributed across the map, showing our global footprint.';
-    } else if (clusterName.toLowerCase().includes('karen')) {
-      insightHtml = `<strong>${clusterName}:</strong> The "${clusterName}" cluster is densely concentrated (97%) around the University City (Cidade Universitária) region.`;
-    } else {
-      insightHtml = `<strong>${clusterName}:</strong> This segment shows a distinct geographical distribution compared to the global average. (Update this text with real insights in main.js)`;
-    }
-
-    insightDiv.innerHTML = `<p style="font-size: 1.1rem; color: var(--text-primary); transition: var(--transition-base);">${insightHtml}</p>`;
-  }
 
   let filteredPoints = points.filter(p => {
     if (filterClusterId === 'all') return true;
@@ -787,6 +768,44 @@ function initTabs() {
           window.dispatchEvent(new Event('resize'));
         }, 50);
       }
+    });
+  });
+}
+
+// ============================================
+// MODEL EVALUATION TABS
+// ============================================
+function initModelTabs() {
+  const tabs = document.querySelectorAll('.model-tab');
+  const contents = document.querySelectorAll('.model-content');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      // update active styles
+      tabs.forEach(t => {
+        t.classList.remove('active');
+        t.style.borderColor = 'var(--border)';
+        t.style.background = 'var(--bg-card)';
+        t.style.boxShadow = 'none';
+        const h4 = t.querySelector('h4');
+        if(h4) h4.style.color = 'var(--text-primary)';
+      });
+      tab.classList.add('active');
+      tab.style.borderColor = 'var(--accent-primary)';
+      tab.style.background = 'rgba(108, 92, 231, 0.15)';
+      tab.style.boxShadow = '0 0 20px var(--accent-glow)';
+      const h4 = tab.querySelector('h4');
+      if(h4) h4.style.color = 'var(--accent-secondary)';
+
+      // update content display
+      const tabId = tab.getAttribute('data-modeltab');
+      contents.forEach(c => {
+        if (c.id === `model-content-${tabId}`) {
+          c.style.display = 'block';
+        } else {
+          c.style.display = 'none';
+        }
+      });
     });
   });
 }
@@ -1058,8 +1077,10 @@ async function init() {
   // Init UI
   initNavigation();
   initTabs();
+  initModelTabs();
   initClustering(clusters);
   initSimulator(overview, clusters);
+  initCarousel();
 
   // Init Transform Toggles
   const btnSpend = document.getElementById('btn-spend-transform');
@@ -1094,6 +1115,43 @@ async function init() {
   }, 500);
 
   console.log('Dashboard loaded successfully');
+}
+
+// ============================================
+// CAROUSEL LOGIC
+// ============================================
+function initCarousel() {
+  const track = document.getElementById('promo-track');
+  const prevBtn = document.querySelector('.prev-btn');
+  const nextBtn = document.querySelector('.next-btn');
+  const navDots = document.querySelectorAll('.carousel-indicator');
+  
+  if (!track || !prevBtn || !nextBtn || !navDots.length) return;
+
+  const slides = Array.from(track.children);
+  let currentIndex = 0;
+
+  function updateCarousel(index) {
+    if (index < 0) index = slides.length - 1;
+    if (index >= slides.length) index = 0;
+    
+    currentIndex = index;
+    const offset = -(currentIndex * 100) + '%';
+    track.style.transform = `translateX(${offset})`;
+    
+    // Update dots
+    navDots.forEach(dot => dot.classList.remove('current-indicator'));
+    if (navDots[currentIndex]) {
+      navDots[currentIndex].classList.add('current-indicator');
+    }
+  }
+
+  prevBtn.addEventListener('click', () => updateCarousel(currentIndex - 1));
+  nextBtn.addEventListener('click', () => updateCarousel(currentIndex + 1));
+
+  navDots.forEach((dot, index) => {
+    dot.addEventListener('click', () => updateCarousel(index));
+  });
 }
 
 // Start the app
