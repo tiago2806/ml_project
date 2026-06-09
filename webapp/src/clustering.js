@@ -27,11 +27,11 @@ let spendingChartInstance = null;
 export function initClustering(clustersData) {
   const selectElement = document.getElementById('persona-select');
   const contentElement = document.getElementById('cluster-content');
-  
+
   if (!selectElement || !clustersData) return;
 
   // Clear loading option
-  selectElement.innerHTML = '<option value="" disabled selected>Choose a Persona...</option>';
+  selectElement.innerHTML = '<option value="" disabled selected>Choose a Cluster...</option>';
 
   // Sort clusters by ID or Size (let's sort by ID to match K-Means order)
   const sortedKeys = Object.keys(clustersData).sort();
@@ -41,7 +41,7 @@ export function initClustering(clustersData) {
     const cluster = clustersData[key];
     const option = document.createElement('option');
     option.value = key;
-    option.textContent = `Persona ${cluster.id + 1}: ${cluster.name} (${cluster.percentage}%)`;
+    option.textContent = `Cluster ${cluster.id + 1}: ${cluster.name} (${cluster.percentage}%)`;
     selectElement.appendChild(option);
   });
 
@@ -51,7 +51,7 @@ export function initClustering(clustersData) {
     if (selectedKey && clustersData[selectedKey]) {
       contentElement.style.display = 'block';
       updateClusterView(clustersData[selectedKey]);
-      
+
       // Add slight animation to cards when updated
       const cards = contentElement.querySelectorAll('.card, .feature-card');
       cards.forEach(card => {
@@ -68,11 +68,17 @@ function updateClusterView(cluster) {
   document.getElementById('cluster-size').textContent = cluster.size.toLocaleString();
   document.getElementById('cluster-percentage').textContent = `${cluster.percentage}% of total`;
   document.getElementById('cluster-age').textContent = Math.round(cluster.features.customer_age);
-  document.getElementById('cluster-tenure').textContent = cluster.features.years_tenure.toFixed(1);
+  document.getElementById('cluster-complaints').textContent = cluster.features.number_complaints.toFixed(2);
+  
+  const promoVal = cluster.features.percentage_of_products_bought_promotion;
+  document.getElementById('cluster-promo').textContent = promoVal !== undefined ? Math.round(promoVal * 100) + '%' : '--';
+  
+  const childrenVal = cluster.features.total_children;
+  document.getElementById('cluster-children').textContent = childrenVal !== undefined ? childrenVal.toFixed(1) : '--';
 
   // Update Radar Chart (Behavior vs Global)
   renderRadarChart(cluster);
-  
+
   // Update Spending Chart
   renderSpendingProfileChart(cluster);
 }
@@ -85,20 +91,18 @@ function renderRadarChart(cluster) {
   // for a few key behavioral metrics
   const radarMetrics = [
     { key: 'customer_age', label: 'Age' },
-    { key: 'total_children', label: 'Children' },
-    { key: 'years_tenure', label: 'Tenure' },
     { key: 'distinct_stores_visited', label: 'Stores Visited' },
     { key: 'number_complaints', label: 'Complaints' },
     { key: 'percentage_of_products_bought_promotion', label: 'Promotion Seeking' }
   ];
 
   const labels = radarMetrics.map(m => m.label);
-  
+
   // The data points are the percentage difference from the global average
   const data = radarMetrics.map(m => {
     const diff = cluster.global_comparison[m.key] || 0;
     // Cap extremes so the chart doesn't look completely distorted
-    return Math.max(Math.min(diff, 200), -100); 
+    return Math.max(Math.min(diff, 200), -100);
   });
 
   if (radarChartInstance) {
@@ -153,7 +157,7 @@ function renderSpendingProfileChart(cluster) {
 
   // Filter spending features
   const spendKeys = Object.keys(cluster.features).filter(k => k.includes('lifetime_spend'));
-  
+
   // Sort them by highest spend for this cluster
   spendKeys.sort((a, b) => cluster.features[b] - cluster.features[a]);
 
@@ -162,7 +166,7 @@ function renderSpendingProfileChart(cluster) {
 
   // Give them a nice gradient of colors
   const barColors = [
-    COLORS.blue, COLORS.cyan, COLORS.teal, COLORS.green, 
+    COLORS.blue, COLORS.cyan, COLORS.teal, COLORS.green,
     COLORS.yellow, COLORS.orange, COLORS.pink
   ].map(c => alpha(c, 0.8));
 
@@ -195,8 +199,8 @@ function renderSpendingProfileChart(cluster) {
 }
 
 // Helper for title casing
-String.prototype.title = function() {
-  return this.replace(/(?:^|\s)\w/g, function(match) {
+String.prototype.title = function () {
+  return this.replace(/(?:^|\s)\w/g, function (match) {
     return match.toUpperCase();
   });
 };
